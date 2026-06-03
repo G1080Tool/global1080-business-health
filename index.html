@@ -1,0 +1,1453 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width,initial-scale=1.0">
+<title>Global 1080 — Business Health App v4</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link href="https://fonts.googleapis.com/css2?family=DM+Sans:opsz,wght@9..40,300;9..40,400;9..40,500;9..40,600&family=DM+Serif+Display&display=swap" rel="stylesheet">
+<link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/@tabler/icons-webfont@latest/tabler-icons.min.css">
+<script src="https://cdnjs.cloudflare.com/ajax/libs/Chart.js/4.4.1/chart.umd.js"></script>
+<script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
+<style>
+*{box-sizing:border-box;margin:0;padding:0;}
+:root{
+  --navy:#0D1033;--coral:#F05454;--coral-l:#fde8e8;--coral-d:#c03a3a;
+  --bg:#f8f7f4;--text:#1a1a2e;--tm:#4a4a6a;--tl:#8888aa;
+  --bdr:#e2e0f0;--card:#fff;--sf:#f4f3fa;
+  --green:#1D9E75;--amber:#EF9F27;
+  --r8:8px;--r12:12px;--r16:16px;
+  --sh1:0 1px 3px rgba(13,16,51,.06);--sh2:0 4px 16px rgba(13,16,51,.08);
+  --f:'DM Sans',sans-serif;--fd:'DM Serif Display',serif;
+}
+html,body{min-height:100vh;background:var(--bg);font-family:var(--f);color:var(--text);font-size:14px;line-height:1.6;}
+.shell{max-width:780px;margin:0 auto;padding:0 16px 80px;}
+
+/* ── AUTH ── */
+#auth{min-height:100vh;display:flex;align-items:center;justify-content:center;padding:20px;}
+.a-card{background:var(--card);border:1px solid var(--bdr);border-radius:var(--r16);padding:32px;width:100%;max-width:420px;box-shadow:var(--sh2);}
+.a-logo{display:flex;align-items:center;gap:10px;margin-bottom:22px;}
+.a-chain{display:flex;flex-direction:column;gap:2px;}
+.alc{border-radius:50%;background:var(--coral);}
+.a-firm{font-size:13px;font-weight:600;color:var(--navy);}
+.a-tag2{font-size:10px;color:var(--tl);font-style:italic;}
+.a-tabs{display:flex;border:1px solid var(--bdr);border-radius:var(--r8);overflow:hidden;margin-bottom:18px;}
+.at{flex:1;padding:8px;font-size:12px;font-weight:600;cursor:pointer;background:transparent;border:none;color:var(--tm);font-family:var(--f);}
+.at.on{background:var(--navy);color:#fff;}
+.a-ttl{font-family:var(--fd);font-size:24px;color:var(--navy);margin-bottom:4px;}
+.a-sub{font-size:12px;color:var(--tm);margin-bottom:18px;line-height:1.5;}
+.fg{display:flex;flex-direction:column;gap:4px;margin-bottom:12px;}
+.fg label{font-size:10px;font-weight:700;color:var(--tm);text-transform:uppercase;letter-spacing:.05em;}
+.fg input{padding:10px 12px;border:1px solid var(--bdr);border-radius:var(--r8);font-size:13px;font-family:var(--f);color:var(--text);outline:none;transition:border-color .15s;}
+.fg input:focus{border-color:var(--coral);}
+.a-btn{width:100%;padding:11px;border-radius:var(--r8);background:var(--coral);color:#fff;border:none;font-size:13px;font-weight:600;cursor:pointer;font-family:var(--f);margin-top:4px;}
+.a-btn:hover{background:var(--coral-d);}.a-btn:disabled{opacity:.5;cursor:not-allowed;}
+.a-msg{font-size:12px;margin-top:10px;padding:9px 12px;border-radius:var(--r8);display:none;}
+.a-msg.err{background:#fde8e8;color:#c03a3a;display:block;}
+.a-msg.ok{background:#e8f5e9;color:#1b5e20;display:block;}
+.a-div{text-align:center;font-size:11px;color:var(--tl);margin:12px 0;position:relative;}
+.a-div::before{content:'';position:absolute;top:50%;left:0;right:0;height:1px;background:var(--bdr);}
+.a-div span{background:var(--card);padding:0 10px;position:relative;}
+.p-grid{display:grid;grid-template-columns:1fr 1fr;gap:8px;margin-bottom:14px;}
+.p-opt{border:1.5px solid var(--bdr);border-radius:var(--r12);padding:11px;cursor:pointer;transition:all .15s;}
+.p-opt.sel{border-color:var(--coral);background:var(--coral-l);}
+.p-nm{font-size:12px;font-weight:700;color:var(--navy);margin-bottom:2px;}
+.p-pr{font-size:18px;font-weight:700;color:var(--coral);}
+.p-per{font-size:10px;color:var(--tl);}
+.p-ft{font-size:10px;color:var(--tm);margin-top:3px;line-height:1.4;}
+.p-hot{display:inline-block;padding:2px 6px;border-radius:20px;font-size:9px;font-weight:700;background:var(--coral);color:#fff;margin-bottom:3px;}
+.f-lnk{font-size:11px;color:var(--coral);cursor:pointer;text-align:right;margin-top:-8px;margin-bottom:10px;text-decoration:underline;}
+.terms{font-size:10px;color:var(--tl);text-align:center;margin-top:10px;line-height:1.5;}
+
+/* ── TOP BAR ── */
+.topbar{display:flex;align-items:center;justify-content:space-between;padding:12px 20px;background:var(--navy);border-radius:0 0 var(--r16) var(--r16);margin-bottom:20px;gap:10px;flex-wrap:wrap;position:sticky;top:0;z-index:100;box-shadow:0 4px 20px rgba(13,16,51,.25);}
+.brand{display:flex;align-items:center;gap:10px;}
+.lchain{display:flex;flex-direction:column;gap:2px;}
+.lc{border-radius:50%;background:var(--coral);}
+.bdiv{width:1px;height:32px;background:rgba(255,255,255,.18);}
+.bnm{font-size:13px;font-weight:600;color:#fff;}
+.btag{font-size:10px;color:rgba(255,255,255,.45);font-style:italic;}
+.topr{display:flex;align-items:center;gap:8px;}
+.lsel{padding:4px 8px;border-radius:var(--r8);border:.5px solid rgba(255,255,255,.2);background:rgba(255,255,255,.08);color:#fff;font-size:11px;cursor:pointer;font-family:var(--f);}
+.lsel option{background:var(--navy);}
+.pchip{padding:3px 9px;border-radius:20px;font-size:10px;font-weight:700;background:rgba(240,84,84,.25);color:#ffaaaa;}
+.pchip.pro{background:rgba(29,158,117,.25);color:#a8ffd6;}
+.uav{width:28px;height:28px;border-radius:50%;background:var(--coral);display:flex;align-items:center;justify-content:center;font-size:11px;font-weight:700;color:#fff;cursor:pointer;flex-shrink:0;}
+.udd{position:absolute;top:58px;right:16px;background:var(--card);border:1px solid var(--bdr);border-radius:var(--r12);padding:6px 0;min-width:185px;box-shadow:var(--sh2);z-index:200;display:none;}
+.udd.open{display:block;}
+.dd-inf{padding:9px 14px;border-bottom:1px solid var(--bdr);margin-bottom:4px;}
+.dd-nm{font-size:13px;font-weight:600;color:var(--navy);}
+.dd-em{font-size:11px;color:var(--tm);}
+.dd-pl{font-size:10px;font-weight:700;margin-top:2px;}
+.dd-it{padding:8px 14px;font-size:12px;color:var(--text);cursor:pointer;display:flex;align-items:center;gap:8px;}
+.dd-it:hover{background:var(--sf);}
+.dd-it.red{color:var(--coral);}
+.ddsep{height:1px;background:var(--bdr);margin:3px 0;}
+
+/* ── PLATFORM ── */
+.pb{display:flex;gap:8px;margin-bottom:20px;}
+.pc{flex:1;display:flex;flex-direction:column;align-items:center;gap:4px;padding:10px 6px;border-radius:var(--r12);border:1px solid var(--bdr);background:var(--card);cursor:pointer;transition:all .2s;min-width:0;}
+.pc:hover,.pc.on{border-color:var(--coral);background:var(--coral-l);}
+.pc.on{border-width:1.5px;}
+.pc i{font-size:20px;color:var(--tl);}
+.pc.on i{color:var(--coral);}
+.pc span{font-size:11px;font-weight:500;color:var(--tl);}
+.pc.on span{color:var(--coral-d);}
+.pdot{width:5px;height:5px;border-radius:50%;background:transparent;}
+.pc.on .pdot{background:var(--coral);}
+
+/* ── TABS ── */
+.tabs{display:flex;gap:4px;margin-bottom:20px;flex-wrap:wrap;}
+.tab{padding:7px 14px;border-radius:var(--r8);border:1px solid var(--bdr);background:var(--card);font-size:12px;font-weight:500;color:var(--tm);cursor:pointer;font-family:var(--f);}
+.tab.on{background:var(--navy);color:#fff;border-color:var(--navy);}
+.slbl{font-size:10px;font-weight:600;letter-spacing:.1em;text-transform:uppercase;color:var(--tl);margin-bottom:10px;}
+
+/* ── SCORE HERO ── */
+.sh{display:flex;align-items:center;gap:16px;background:var(--navy);border-radius:var(--r16);padding:20px 24px;margin-bottom:16px;box-shadow:var(--sh2);}
+.sh-t{font-size:14px;font-weight:500;color:rgba(255,255,255,.6);}
+.sh-n{font-family:var(--fd);font-size:52px;color:#fff;line-height:1;margin:2px 0;}
+.sbdg{display:inline-block;padding:3px 12px;border-radius:20px;font-size:11px;font-weight:600;margin-top:4px;}
+.sh-d{font-size:12px;color:rgba(255,255,255,.5);margin-top:4px;line-height:1.5;}
+
+/* ── METRIC GRID ── */
+.mgrid{display:grid;grid-template-columns:repeat(auto-fit,minmax(110px,1fr));gap:8px;margin-bottom:16px;}
+.mc{background:var(--card);border:1px solid var(--bdr);border-radius:var(--r12);padding:12px 14px;box-shadow:var(--sh1);}
+.mcl{font-size:10px;color:var(--tl);margin-bottom:3px;font-weight:500;}
+.mcv{font-size:18px;font-weight:600;color:var(--text);}
+.mcd{font-size:10px;margin-top:2px;font-weight:500;}
+
+/* ── PILLARS ── */
+.pgrid{display:grid;grid-template-columns:repeat(auto-fit,minmax(110px,1fr));gap:8px;margin-bottom:16px;}
+.pi{background:var(--card);border:1px solid var(--bdr);border-radius:var(--r12);padding:11px 13px;box-shadow:var(--sh1);}
+.pin{font-size:10px;color:var(--tl);margin-bottom:4px;font-weight:500;}
+.pis{font-size:22px;font-weight:700;}
+.bb{background:var(--bdr);border-radius:3px;height:4px;margin-top:5px;}
+.bf{height:4px;border-radius:3px;transition:width .5s;}
+
+/* ── INPUTS ── */
+.igrid{display:grid;grid-template-columns:repeat(auto-fit,minmax(165px,1fr));gap:10px;margin-bottom:16px;}
+.ig{display:flex;flex-direction:column;gap:4px;}
+.ig label{font-size:11px;color:var(--tm);font-weight:500;}
+.iw{display:flex;align-items:center;border:1px solid var(--bdr);border-radius:var(--r8);background:var(--card);overflow:hidden;}
+.iw:focus-within{border-color:var(--coral);}
+.cpfx{padding:0 10px;font-size:13px;font-weight:600;color:var(--tm);background:var(--sf);border-right:1px solid var(--bdr);min-width:36px;text-align:center;}
+.ig input{padding:8px 10px;border:none;background:transparent;color:var(--text);font-size:13px;width:100%;outline:none;font-family:var(--f);}
+
+/* ── CHARTS ── */
+.cc{background:var(--card);border:1px solid var(--bdr);border-radius:var(--r16);padding:16px 20px;margin-bottom:16px;box-shadow:var(--sh1);}
+.cch{display:flex;justify-content:space-between;align-items:center;margin-bottom:12px;flex-wrap:wrap;gap:6px;}
+.cct{font-size:13px;font-weight:600;color:var(--text);}
+.leg{display:flex;gap:12px;flex-wrap:wrap;}
+.li{display:flex;align-items:center;gap:4px;font-size:10px;color:var(--tm);}
+.ld{width:7px;height:7px;border-radius:50%;}
+
+/* ── INSIGHTS ── */
+.il{display:flex;flex-direction:column;gap:7px;margin-bottom:16px;}
+.ins{display:flex;gap:10px;align-items:flex-start;padding:10px 13px;border-radius:var(--r12);font-size:12px;line-height:1.5;}
+
+/* ── ADVICE PANEL ── */
+.ap{border:1px solid var(--bdr);border-radius:var(--r16);overflow:hidden;margin-top:16px;box-shadow:var(--sh1);}
+.aph2{display:flex;align-items:center;justify-content:space-between;padding:10px 14px;background:var(--sf);border-bottom:1px solid var(--bdr);flex-wrap:wrap;gap:8px;}
+.aphl{display:flex;align-items:center;gap:7px;font-size:12px;font-weight:600;color:var(--text);}
+.apb{padding:14px;min-height:60px;font-size:12px;line-height:1.8;color:var(--text);}
+.apb p{margin-bottom:.5rem;}.apb p:last-child{margin-bottom:0;}
+.apb ul{padding-left:1.2rem;margin-bottom:.5rem;}.apb li{margin-bottom:3px;}
+.apb strong{font-weight:600;}
+.apph{color:var(--tl);font-size:12px;}
+.pills{display:flex;flex-wrap:wrap;gap:5px;margin-bottom:10px;}
+.pill{padding:4px 10px;border-radius:20px;border:1px solid var(--bdr);font-size:11px;color:var(--tm);cursor:pointer;background:var(--card);font-family:var(--f);}
+.pill:hover{background:var(--coral-l);border-color:var(--coral);color:var(--coral-d);}
+
+/* ── LOCKED PANEL ── */
+.lkp{border:1px solid var(--bdr);border-radius:var(--r16);padding:28px 20px;text-align:center;margin-top:16px;background:var(--card);box-shadow:var(--sh1);}
+.lki{font-size:32px;color:var(--coral);margin-bottom:10px;}
+.lkt{font-size:15px;font-weight:600;color:var(--navy);margin-bottom:6px;}
+.lkf{display:flex;flex-wrap:wrap;justify-content:center;gap:8px;margin-bottom:14px;}
+.lff{display:flex;align-items:center;gap:5px;font-size:11px;color:var(--tm);background:var(--sf);padding:4px 10px;border-radius:20px;border:1px solid var(--bdr);}
+.lff i{font-size:13px;color:var(--coral);}
+.lkd{font-size:12px;color:var(--tm);margin-bottom:14px;line-height:1.6;max-width:310px;margin-left:auto;margin-right:auto;}
+.upbtn{display:inline-flex;align-items:center;gap:6px;padding:10px 22px;border-radius:var(--r8);background:var(--coral);color:#fff;border:none;font-size:13px;font-weight:600;cursor:pointer;font-family:var(--f);}
+.upbtn:hover{background:var(--coral-d);}
+
+/* ── BUTTONS ── */
+.cbtn{display:inline-flex;align-items:center;gap:5px;padding:7px 14px;border-radius:var(--r8);background:var(--coral);color:#fff;border:none;font-size:11px;cursor:pointer;font-weight:600;font-family:var(--f);}
+.cbtn:hover{background:var(--coral-d);}.cbtn:disabled{opacity:.5;cursor:not-allowed;}
+.nbtn{padding:9px 18px;border-radius:var(--r8);background:var(--navy);color:#fff;border:none;font-size:12px;cursor:pointer;font-weight:600;margin-right:8px;font-family:var(--f);}
+.nbtn:hover{background:#161b4a;}
+.obtn{padding:9px 16px;border-radius:var(--r8);border:1px solid var(--bdr);background:transparent;color:var(--tm);font-size:12px;cursor:pointer;font-family:var(--f);}
+.spin{width:12px;height:12px;border:2px solid rgba(255,255,255,.3);border-top-color:#fff;border-radius:50%;animation:sp .7s linear infinite;display:inline-block;}
+@keyframes sp{to{transform:rotate(360deg);}}
+.cbl{display:inline-block;width:2px;height:12px;background:var(--text);margin-left:2px;vertical-align:middle;animation:bl 1s step-end infinite;}
+@keyframes bl{50%{opacity:0;}}
+
+/* ── CONSULTANT ── */
+.consc{border:1px solid var(--bdr);border-radius:var(--r16);overflow:hidden;margin-bottom:16px;box-shadow:var(--sh1);}
+.consh{background:var(--navy);padding:18px 20px;display:flex;align-items:center;gap:12px;}
+.consb{padding:16px 20px;background:var(--card);}
+.cr{display:flex;align-items:center;gap:10px;padding:10px 0;border-bottom:1px solid var(--bdr);font-size:12px;}
+.cr:last-of-type{border-bottom:none;}
+.ci{width:32px;height:32px;border-radius:var(--r8);background:var(--coral-l);display:flex;align-items:center;justify-content:center;flex-shrink:0;}
+.ci i{font-size:15px;color:var(--coral-d);}
+.cdl{font-size:10px;color:var(--tl);margin-bottom:1px;font-weight:500;}
+.cdv{font-size:12px;color:var(--text);font-weight:500;}
+.ctar{display:flex;gap:8px;margin-top:14px;flex-wrap:wrap;}
+.ctac{flex:1;padding:10px 14px;border-radius:var(--r8);background:var(--coral);color:#fff;border:none;font-size:12px;cursor:pointer;font-weight:600;display:flex;align-items:center;justify-content:center;gap:6px;min-width:130px;font-family:var(--f);}
+.ctac:hover{background:var(--coral-d);}
+.ctan{flex:1;padding:10px 14px;border-radius:var(--r8);background:var(--navy);color:#fff;border:none;font-size:12px;cursor:pointer;font-weight:600;display:flex;align-items:center;justify-content:center;gap:6px;min-width:130px;font-family:var(--f);}
+.ctan:hover{background:#161b4a;}
+.stbtn{display:flex;align-items:center;gap:7px;padding:8px 13px;border-radius:var(--r8);border:1px solid var(--bdr);background:var(--sf);color:var(--text);font-size:11px;cursor:pointer;font-family:var(--f);}
+
+/* ── PRICING ── */
+.pkgrid{display:grid;grid-template-columns:1fr 1fr;gap:12px;margin-bottom:12px;}
+.pkg{border-radius:var(--r16);padding:16px 18px;border:1.5px solid var(--bdr);background:var(--card);box-shadow:var(--sh1);}
+.pkg.feat{border-color:var(--coral);}
+.pkg-bl{display:inline-block;padding:3px 10px;border-radius:20px;font-size:10px;font-weight:600;margin-bottom:8px;}
+.pkg-n{font-size:15px;font-weight:700;color:var(--text);margin-bottom:3px;}
+.pkg-p{font-family:var(--fd);font-size:28px;color:var(--text);}
+.pkg-pe{font-size:11px;color:var(--tl);}
+.pkg-d{font-size:11px;color:var(--tm);margin:8px 0 10px;line-height:1.5;}
+.pkg-f{display:flex;align-items:flex-start;gap:6px;font-size:11px;color:var(--tm);margin-bottom:5px;}
+.pkg-f i{font-size:13px;color:var(--coral);flex-shrink:0;margin-top:1px;}
+.pkg-f.dim i{color:var(--tl);}.pkg-f.dim{color:var(--tl);}
+.pkgbtn{width:100%;margin-top:12px;padding:9px;border-radius:var(--r8);font-size:12px;font-weight:600;cursor:pointer;border:none;font-family:var(--f);}
+.pkgbtn.c{background:var(--coral);color:#fff;}.pkgbtn.n{background:var(--navy);color:#fff;}
+.curpl{display:inline-flex;align-items:center;gap:4px;padding:3px 9px;border-radius:20px;font-size:10px;font-weight:700;margin-top:10px;width:100%;justify-content:center;}
+.trn{text-align:center;font-size:11px;color:var(--tl);margin-top:6px;}
+.dvhr{border:none;border-top:1px solid var(--bdr);margin:16px 0;}
+
+/* ── MOBILE FRAMES ── */
+.pw{max-width:295px;margin:0 auto;}
+/* iOS */
+.i-sh{border:2px solid #c8c8cc;border-radius:44px;padding:8px;background:#1c1c1e;}
+.i-sc{background:#f2f2f7;border-radius:38px;overflow:hidden;}
+.i-sb{background:var(--navy);display:flex;justify-content:space-between;align-items:center;padding:10px 18px 6px;position:relative;}
+.i-pl{width:88px;height:7px;background:#1c1c1e;border-radius:0 0 6px 6px;position:absolute;left:50%;transform:translateX(-50%);top:0;}
+.i-t{font-size:12px;font-weight:600;color:#fff;}
+.i-ic{display:flex;gap:4px;color:#fff;font-size:12px;}
+.i-hr{background:var(--navy);padding:10px 16px 16px;}
+.i-br{display:flex;align-items:center;gap:8px;margin-bottom:10px;}
+.i-ds{display:flex;flex-direction:column;gap:2px;}
+.i-d{border-radius:50%;background:var(--coral);}
+.i-bn{font-size:12px;font-weight:700;color:#fff;}
+.i-bt{font-size:9px;color:rgba(255,255,255,.45);font-style:italic;}
+.i-sr{display:flex;align-items:center;gap:14px;}
+.i-sl{font-size:9px;color:rgba(255,255,255,.55);margin-bottom:2px;text-transform:uppercase;letter-spacing:.05em;}
+.i-sn{font-family:var(--fd);font-size:34px;color:#fff;line-height:1;}
+.i-bo{padding:12px;}
+.i-mg{display:grid;grid-template-columns:1fr 1fr;gap:7px;margin-bottom:10px;}
+.i-m{background:#fff;border-radius:12px;padding:9px 11px;}
+.i-ml{font-size:9px;color:#8e8e93;text-transform:uppercase;letter-spacing:.04em;margin-bottom:2px;}
+.i-mv{font-size:14px;font-weight:700;color:#1c1c1e;}
+.i-ps{font-size:9px;font-weight:700;color:#8e8e93;text-transform:uppercase;letter-spacing:.06em;margin-bottom:7px;}
+.i-pr{background:#fff;border-radius:12px;padding:8px 11px;display:flex;align-items:center;justify-content:space-between;margin-bottom:5px;}
+.i-pn{font-size:11px;color:#1c1c1e;font-weight:500;}
+.i-prt{display:flex;align-items:center;gap:7px;}
+.i-pts{font-size:11px;font-weight:700;}
+.i-mb{width:52px;height:4px;background:#e5e5ea;border-radius:2px;}
+.i-mf{height:4px;border-radius:2px;}
+.i-tb{background:#fff;display:flex;justify-content:space-around;padding:8px 0 10px;border-top:.5px solid #c6c6c8;}
+.i-ti{display:flex;flex-direction:column;align-items:center;gap:2px;font-size:9px;color:#8e8e93;}
+.i-ti.on{color:var(--coral);}
+.i-hi{height:4px;width:100px;background:#1c1c1e;border-radius:2px;margin:4px auto 2px;}
+/* Android */
+.a-sh{border:2px solid #2a2a2a;border-radius:22px;padding:6px;background:#111;}
+.a-sc{background:#f0f2f5;border-radius:17px;overflow:hidden;}
+.a-sb{background:var(--navy);display:flex;justify-content:space-between;align-items:center;padding:8px 14px 5px;}
+.a-t{font-size:11px;font-weight:600;color:#fff;}
+.a-ic{display:flex;gap:3px;font-size:11px;color:#fff;}
+.a-ab{background:var(--navy);padding:0 14px 13px;display:flex;align-items:center;gap:9px;}
+.a-ad{display:flex;flex-direction:column;gap:2px;}
+.a-adot{border-radius:50%;background:var(--coral);}
+.a-dv{width:1px;height:26px;background:rgba(255,255,255,.2);}
+.a-at{font-size:14px;font-weight:600;color:#fff;}
+.a-as{font-size:9px;color:rgba(255,255,255,.5);font-style:italic;}
+.a-bo{padding:10px;}
+.a-sc2{background:#fff;border-radius:12px;padding:12px;margin-bottom:8px;display:flex;align-items:center;gap:10px;}
+.a-sl{font-size:10px;color:#666;}
+.a-sn{font-family:var(--fd);font-size:28px;color:#111;line-height:1;}
+.a-sb2{font-size:11px;font-weight:600;margin-top:3px;}
+.a-mg{display:grid;grid-template-columns:1fr 1fr;gap:7px;margin-bottom:8px;}
+.a-m{background:#fff;border-radius:10px;padding:9px 10px;}
+.a-ml{font-size:9px;color:#888;text-transform:uppercase;letter-spacing:.04em;margin-bottom:2px;}
+.a-mv{font-size:13px;font-weight:700;color:#111;}
+.a-ps{font-size:9px;font-weight:700;text-transform:uppercase;letter-spacing:.07em;color:#888;margin-bottom:7px;}
+.a-pi{background:#fff;border-radius:10px;padding:8px 11px;margin-bottom:6px;}
+.a-pt{display:flex;justify-content:space-between;align-items:center;margin-bottom:4px;}
+.a-pn{font-size:11px;color:#111;font-weight:500;}
+.a-psc{font-size:11px;font-weight:700;}
+.a-bb{background:#e0e0e0;border-radius:2px;height:3px;}
+.a-bf{height:3px;border-radius:2px;}
+.a-fab{width:44px;height:44px;border-radius:50%;background:var(--coral);display:flex;align-items:center;justify-content:center;margin:8px auto 2px;cursor:pointer;box-shadow:0 3px 10px rgba(240,84,84,.4);}
+.a-nb{background:#fff;display:flex;justify-content:space-around;padding:7px 0 5px;border-top:1px solid #e0e0e0;}
+.a-ni{display:flex;flex-direction:column;align-items:center;gap:2px;font-size:9px;color:#999;}
+.a-ni.on{color:var(--coral);}
+.a-nib{width:26px;height:2.5px;background:transparent;border-radius:2px;margin-bottom:1px;}
+.a-ni.on .a-nib{background:var(--coral);}
+.pnlbl{text-align:center;margin-top:8px;font-size:11px;color:var(--tl);display:flex;align-items:center;justify-content:center;gap:5px;}
+@media(max-width:480px){.pkgrid{grid-template-columns:1fr;}.sh-n{font-size:42px;}.shell{padding:0 12px 80px;}}
+@keyframes fi{from{opacity:0;transform:translateY(8px)}to{opacity:1;transform:translateY(0)}}
+.tc{animation:fi .25s ease;}
+</style>
+</head>
+<body>
+
+<!-- ═══ AUTH SCREEN ═══ -->
+<div id="auth">
+  <div class="a-card">
+    <div class="a-logo">
+      <div class="a-chain">
+        <div class="alc" style="width:4px;height:4px;margin-left:7px"></div>
+        <div class="alc" style="width:6px;height:6px;margin-left:4px"></div>
+        <div class="alc" style="width:9px;height:9px;margin-left:1px"></div>
+        <div class="alc" style="width:11px;height:11px"></div>
+        <div class="alc" style="width:7px;height:7px;margin-left:3px"></div>
+      </div>
+      <div style="width:1px;height:34px;background:var(--bdr);margin:0 8px"></div>
+      <div><div class="a-firm">Global 1080 Business Solutions</div><div class="a-tag2" id="auth-tag">Your Experienced Guide to Success!</div></div>
+    </div>
+    <div class="a-tabs">
+      <button class="at on" id="at-login" onclick="showATab('login')"><span id="at-login-lbl">Sign in</span></button>
+      <button class="at" id="at-signup" onclick="showATab('signup')"><span id="at-signup-lbl">Create account</span></button>
+    </div>
+
+    <!-- LOGIN -->
+    <div id="auth-login">
+      <div class="a-ttl" id="a-ttl-login">Welcome back</div>
+    <div id="platform-badge" style="display:inline-flex;align-items:center;gap:5px;padding:3px 10px;border-radius:20px;background:var(--sf);border:1px solid var(--bdr);font-size:10px;color:var(--tl);margin-bottom:4px;font-weight:500;"><i class="ti ti-device-laptop" id="platform-icon" aria-hidden="true"></i><span id="platform-name">Web</span></div>
+      <div class="a-sub" id="a-sub-login">Sign in to your business health dashboard.</div>
+      <div class="fg"><label id="lbl-email-f">Email address</label><input type="email" id="l-email" placeholder="you@example.com" autocomplete="email"></div>
+      <div class="fg"><label id="lbl-pw-f">Password</label><input type="password" id="l-pw" placeholder="••••••••" autocomplete="current-password"></div>
+      <div class="f-lnk" onclick="showATab('forgot')" id="lbl-forgot">Forgot password?</div>
+      <button class="a-btn" id="btn-login" onclick="doLogin()"><span id="login-btn-t">Sign in</span></button>
+      <div class="a-div"><span id="lbl-or">or</span></div>
+      <div style="text-align:center;font-size:12px;color:var(--tm)">
+        <span id="lbl-no-acc">Don't have an account?</span>
+        <span style="color:var(--coral);cursor:pointer;font-weight:600" onclick="showATab('signup')" id="lbl-create"> Create one free</span>
+      </div>
+      <div id="login-msg" class="a-msg"></div>
+    </div>
+
+    <!-- SIGNUP -->
+    <div id="auth-signup" style="display:none">
+      <div class="a-ttl" id="a-ttl-signup">Create your account</div>
+      <div class="a-sub" id="a-sub-signup">Subscribe to AI Consultant Pro and get started today.</div>
+      <div class="fg"><label id="lbl-name-f">Full name</label><input type="text" id="s-name" placeholder="Maria Rodriguez" autocomplete="name"></div>
+      <div class="fg"><label id="lbl-email-f2">Email address</label><input type="email" id="s-email" placeholder="you@example.com" autocomplete="email"></div>
+      <div class="fg"><label id="lbl-pw-f2">Password</label><input type="password" id="s-pw" placeholder="Min. 8 characters" autocomplete="new-password"></div>
+      <div style="background:rgba(240,84,84,.08);border:1.5px solid var(--coral);border-radius:var(--r12);padding:11px 13px;margin-bottom:14px;text-align:center;">
+        <div style="font-size:9px;font-weight:700;background:var(--coral);color:#fff;padding:2px 8px;border-radius:20px;display:inline-block;margin-bottom:6px" id="po-hot">Complete solution</div>
+        <div style="font-size:14px;font-weight:700;color:var(--navy);margin-bottom:3px" id="po-n2">AI Consultant Pro</div>
+        <div><span style="font-size:20px;font-weight:700;color:var(--coral)">$14.99</span><span style="font-size:10px;color:var(--tl)">/mo</span></div>
+        <div style="font-size:10px;color:var(--tm);margin-top:5px;line-height:1.4" id="po-f2">Full dashboard, forecasts, alerts &amp; unlimited AI Consultant advice.</div>
+      </div>
+      <button class="a-btn" id="btn-signup" onclick="doSignup()"><span id="signup-btn-t">Create account &amp; subscribe</span></button>
+      <div id="signup-msg" class="a-msg"></div>
+      <div class="terms" id="auth-terms">By creating an account you agree to our Terms of Service and Privacy Policy.</div>
+    </div>
+
+    <!-- FORGOT -->
+    <div id="auth-forgot" style="display:none">
+      <div class="a-ttl" id="a-ttl-forgot">Reset password</div>
+      <div class="a-sub" id="a-sub-forgot">We'll send a reset link to your email.</div>
+      <div class="fg"><label>Email address</label><input type="email" id="f-email" placeholder="you@example.com"></div>
+      <button class="a-btn" onclick="doForgot()"><span id="forgot-btn-t">Send reset link</span></button>
+      <div id="forgot-msg" class="a-msg"></div>
+      <div style="text-align:center;margin-top:12px"><span style="font-size:12px;color:var(--coral);cursor:pointer" onclick="showATab('login')" id="lbl-back">← Back to sign in</span></div>
+    </div>
+  </div>
+</div>
+
+<!-- ═══ MAIN APP ═══ -->
+<div id="app" style="display:none">
+<div class="shell">
+
+  <!-- TOP BAR -->
+  <div class="topbar">
+    <div class="brand">
+      <div class="lchain">
+        <div class="lc" style="width:4px;height:4px;margin-left:7px"></div>
+        <div class="lc" style="width:6px;height:6px;margin-left:4px"></div>
+        <div class="lc" style="width:9px;height:9px;margin-left:1px"></div>
+        <div class="lc" style="width:11px;height:11px"></div>
+        <div class="lc" style="width:7px;height:7px;margin-left:3px"></div>
+      </div>
+      <div class="bdiv"></div>
+      <div><div class="bnm">Global 1080 Business Solutions</div><div class="btag" id="b-tag">Your Experienced Guide to Success!</div></div>
+    </div>
+    <div class="topr">
+      <select class="lsel" id="lsel" onchange="setLang(this.value)" aria-label="Language">
+        <option value="en">🌐 EN</option>
+        <option value="es">🌐 ES</option>
+        <option value="pt">🌐 PT</option>
+      </select>
+      <span class="pchip pro" id="pchip">AI Pro</span>
+      <div class="uav" id="uav" onclick="toggleDD()" aria-label="User menu">?</div>
+    </div>
+  </div>
+
+  <!-- DROPDOWN -->
+  <div class="udd" id="udd">
+    <div class="dd-inf">
+      <div class="dd-nm" id="dd-nm">User</div>
+      <div class="dd-em" id="dd-em">user@example.com</div>
+      <div class="dd-pl" id="dd-pl" style="color:var(--coral)">Essential plan</div>
+    </div>
+    <div class="dd-it" id="dd-up-it" onclick="switchTab('pricing');closeDD()">
+      <i class="ti ti-crown" style="font-size:15px;color:var(--coral)" aria-hidden="true"></i>
+      <span id="dd-up-lbl">Upgrade to AI Pro</span>
+    </div>
+    <div class="ddsep"></div>
+    <div class="dd-it red" onclick="doSignOut()">
+      <i class="ti ti-logout" style="font-size:15px" aria-hidden="true"></i>
+      <span id="dd-so">Sign out</span>
+    </div>
+  </div>
+
+  <!-- PLATFORM BAR -->
+  <div class="pb" role="group" aria-label="Platform">
+    <button class="pc on" id="pc-web" onclick="setPf('web')" aria-pressed="true">
+      <i class="ti ti-browser" aria-hidden="true"></i><span>Web</span><div class="pdot"></div>
+    </button>
+    <button class="pc" id="pc-ios" onclick="setPf('ios')" aria-pressed="false">
+      <i class="ti ti-brand-apple" aria-hidden="true"></i><span>iOS</span><div class="pdot"></div>
+    </button>
+    <button class="pc" id="pc-android" onclick="setPf('android')" aria-pressed="false">
+      <i class="ti ti-brand-android" aria-hidden="true"></i><span>Android</span><div class="pdot"></div>
+    </button>
+  </div>
+
+  <!-- ── WEB VIEW ── -->
+  <div id="vw-web">
+    <div class="tabs" role="tablist">
+      <button class="tab on" onclick="switchTab('dashboard')" id="nav-dashboard">Dashboard</button>
+      <button class="tab" onclick="switchTab('inputs')" id="nav-inputs">My numbers</button>
+      <button class="tab" onclick="switchTab('forecast')" id="nav-forecast">Forecast</button>
+      <button class="tab" onclick="switchTab('insights')" id="nav-insights">Insights</button>
+      <button class="tab" onclick="switchTab('consultant')" id="nav-consultant">Consultant</button>
+      <button class="tab" onclick="switchTab('pricing')" id="nav-pricing">Plans</button>
+    </div>
+
+    <!-- DASHBOARD -->
+    <div id="tab-dashboard" class="tc">
+      <div class="sh">
+        <svg width="76" height="76" viewBox="0 0 76 76" aria-hidden="true">
+          <circle cx="38" cy="38" r="30" fill="none" stroke="rgba(255,255,255,.12)" stroke-width="6"/>
+          <circle cx="38" cy="38" r="30" fill="none" stroke="#F05454" stroke-width="6"
+            stroke-dasharray="188" stroke-dashoffset="47" stroke-linecap="round"
+            transform="rotate(-90 38 38)" id="sc-arc"/>
+          <text x="38" y="44" text-anchor="middle" font-size="18" font-weight="700" fill="#fff" font-family="DM Serif Display,serif" id="sc-num">75</text>
+        </svg>
+        <div style="flex:1">
+          <div class="sh-t" id="lbl-sc-ttl">Business health score</div>
+          <div class="sh-n" id="sc-disp">75</div>
+          <span class="sbdg" id="sc-badge" style="background:rgba(240,84,84,.25);color:#ffaaaa">Good</span>
+          <div class="sh-d" id="sc-desc">Your business is in good shape.</div>
+        </div>
+      </div>
+      <div class="slbl" id="lbl-metrics">Key metrics this month</div>
+      <div class="mgrid">
+        <div class="mc"><div class="mcl" id="lbl-rev">Monthly revenue</div><div class="mcv" id="m-rev">$24,500</div><div class="mcd" style="color:var(--green)">↑ 4.2%</div></div>
+        <div class="mc"><div class="mcl" id="lbl-exp">Expenses</div><div class="mcv" id="m-exp">$17,200</div><div class="mcd" style="color:var(--coral)">↑ 2.1%</div></div>
+        <div class="mc"><div class="mcl" id="lbl-profit">Net profit</div><div class="mcv" id="m-profit">$7,300</div><div class="mcd" style="color:var(--green)">↑ 9.0%</div></div>
+        <div class="mc"><div class="mcl" id="lbl-margin">Profit margin</div><div class="mcv" id="m-margin">29.8%</div></div>
+        <div class="mc"><div class="mcl" id="lbl-runway">Cash runway</div><div class="mcv" id="m-runway">6.2 mo</div></div>
+      </div>
+      <div class="slbl" id="lbl-pillars">Health pillars</div>
+      <div class="pgrid" id="pgrid"></div>
+      <div id="slot-dashboard"></div>
+    </div>
+
+    <!-- MY NUMBERS -->
+    <div id="tab-inputs" style="display:none" class="tc">
+      <div class="slbl" id="lbl-enter">Enter your monthly numbers</div>
+      <div class="igrid">
+        <div class="ig"><label id="il-rev">Monthly revenue ($)</label><div class="iw"><span class="cpfx" id="pfx-1">$</span><input type="number" id="inp-rev" value="24500" oninput="recalc()"></div></div>
+        <div class="ig"><label id="il-exp">Monthly expenses ($)</label><div class="iw"><span class="cpfx" id="pfx-2">$</span><input type="number" id="inp-exp" value="17200" oninput="recalc()"></div></div>
+        <div class="ig"><label id="il-cash">Cash on hand ($)</label><div class="iw"><span class="cpfx" id="pfx-3">$</span><input type="number" id="inp-cash" value="45000" oninput="recalc()"></div></div>
+        <div class="ig"><label id="il-debt">Outstanding debt ($)</label><div class="iw"><span class="cpfx" id="pfx-4">$</span><input type="number" id="inp-debt" value="12000" oninput="recalc()"></div></div>
+        <div class="ig"><label id="il-cust">Active customers</label><div class="iw"><span class="cpfx" style="opacity:0">$</span><input type="number" id="inp-cust" value="120" oninput="recalc()"></div></div>
+        <div class="ig"><label id="il-churn">Lost customers this month</label><div class="iw"><span class="cpfx" style="opacity:0">$</span><input type="number" id="inp-churn" value="6" oninput="recalc()"></div></div>
+        <div class="ig"><label id="il-growth">Revenue growth (%/mo)</label><div class="iw"><span class="cpfx" style="opacity:0">$</span><input type="number" id="inp-growth" value="4.2" step="0.1" oninput="recalc()"></div></div>
+        <div class="ig"><label id="il-expgrow">Expense growth (%/mo)</label><div class="iw"><span class="cpfx" style="opacity:0">$</span><input type="number" id="inp-expgrow" value="2.1" step="0.1" oninput="recalc()"></div></div>
+      </div>
+      <button class="nbtn" id="btn-upd" onclick="recalc();switchTab('dashboard')">Update dashboard</button>
+      <button class="obtn" id="btn-upd-ai" onclick="recalc();triggerAI('dashboard');switchTab('dashboard')">Update &amp; get AI advice</button>
+    </div>
+
+    <!-- FORECAST -->
+    <div id="tab-forecast" style="display:none" class="tc">
+      <div class="slbl" id="lbl-12mo">12-month projection</div>
+      <div class="mgrid" style="grid-template-columns:repeat(3,1fr);margin-bottom:12px">
+        <div class="mc"><div class="mcl" id="lbl-f-rev">Revenue in 12 mo</div><div class="mcv" id="f-rev12">—</div></div>
+        <div class="mc"><div class="mcl" id="lbl-f-profit">Profit in 12 mo</div><div class="mcv" id="f-profit12">—</div></div>
+        <div class="mc"><div class="mcl" id="lbl-f-score">Score trend</div><div class="mcv" id="f-sc12">—</div></div>
+      </div>
+      <div class="cc">
+        <div class="cch">
+          <span class="cct" id="lbl-fc">Monthly forecast</span>
+          <div class="leg">
+            <span class="li"><span class="ld" style="background:var(--navy)"></span><span id="leg-rev">Revenue</span></span>
+            <span class="li"><span class="ld" style="background:var(--coral)"></span><span id="leg-exp">Expenses</span></span>
+            <span class="li"><span class="ld" style="background:var(--green)"></span><span id="leg-profit">Profit</span></span>
+          </div>
+        </div>
+        <div style="position:relative;width:100%;height:210px"><canvas id="fc-chart" role="img" aria-label="12-month forecast"></canvas></div>
+      </div>
+      <div class="cc">
+        <div class="cch"><span class="cct" id="lbl-sc-trend">Health score trend</span></div>
+        <div style="position:relative;width:100%;height:155px"><canvas id="sc-chart" role="img" aria-label="Score trend"></canvas></div>
+      </div>
+      <div id="slot-forecast"></div>
+    </div>
+
+    <!-- INSIGHTS -->
+    <div id="tab-insights" style="display:none" class="tc">
+      <div class="slbl" id="lbl-ins-ttl">Key insights &amp; alerts</div>
+      <div class="il" id="ins-list"></div>
+      <div id="slot-insights"></div>
+    </div>
+
+    <!-- CONSULTANT -->
+    <div id="tab-consultant" style="display:none" class="tc">
+      <div class="consc">
+        <div class="consh">
+          <div class="lchain">
+            <div class="lc" style="width:4px;height:4px;margin-left:7px"></div>
+            <div class="lc" style="width:6px;height:6px;margin-left:4px"></div>
+            <div class="lc" style="width:9px;height:9px;margin-left:1px"></div>
+            <div class="lc" style="width:11px;height:11px"></div>
+            <div class="lc" style="width:7px;height:7px;margin-left:3px"></div>
+          </div>
+          <div style="width:1px;height:36px;background:rgba(255,255,255,.2);margin:0 8px"></div>
+          <div>
+            <div style="font-size:14px;font-weight:700;color:#fff">Global 1080 Business Solutions</div>
+            <div style="font-size:11px;color:rgba(255,255,255,.45);font-style:italic" id="cons-tag">Your Experienced Guide to Success!</div>
+          </div>
+        </div>
+        <div class="consb">
+          <div class="slbl" id="lbl-contact">Contact us</div>
+          <div class="cr">
+            <div class="ci"><i class="ti ti-mail" aria-hidden="true"></i></div>
+            <div style="flex:1"><div class="cdl">Email</div><div class="cdv"><a href="mailto:info@global1080.com" style="color:var(--navy);text-decoration:none">info@global1080.com</a></div></div>
+            <button onclick="openEmail()" class="cbtn" aria-label="Send email"><i class="ti ti-send" style="font-size:12px" aria-hidden="true"></i> <span id="lbl-send">Send</span></button>
+          </div>
+          <div class="cr">
+            <div class="ci" style="background:#e8eaf6"><i class="ti ti-phone" style="color:#3949ab" aria-hidden="true"></i></div>
+            <div><div class="cdl" id="lbl-usa">Contact (USA)</div><div class="cdv">1-305-409-5747</div></div>
+          </div>
+          <div class="cr">
+            <div class="ci" style="background:#fff3e0"><i class="ti ti-phone" style="color:#e65100" aria-hidden="true"></i></div>
+            <div><div class="cdl" id="lbl-pr">Contacto (PR)</div><div class="cdv">1-939-240-1080</div></div>
+          </div>
+          <div class="cr">
+            <div class="ci" style="background:#e8f5e9"><i class="ti ti-phone" style="color:#2e7d32" aria-hidden="true"></i></div>
+            <div><div class="cdl" id="lbl-br">Contato (BR)</div><div class="cdv">55-11-9-9130-2525</div></div>
+          </div>
+          <div class="ctar">
+            <button class="ctac" onclick="openEmail()"><i class="ti ti-mail" style="font-size:13px" aria-hidden="true"></i> <span id="lbl-email-us">Email us</span></button>
+            <button class="ctan" onclick="triggerAI('consultant')"><i class="ti ti-report" style="font-size:13px" aria-hidden="true"></i> <span id="lbl-prep">Prepare my report</span></button>
+          </div>
+          <div class="dvhr"></div>
+          <div class="slbl" id="lbl-get-app">Get the app</div>
+          <div style="display:flex;gap:8px;flex-wrap:wrap">
+            <button class="stbtn" onclick="setPf('ios')"><i class="ti ti-brand-apple" style="font-size:15px" aria-hidden="true"></i><div><div style="font-size:9px;color:var(--tl)" id="lbl-dl-on">Download on the</div><div style="font-size:11px;font-weight:600">App Store</div></div></button>
+            <button class="stbtn" onclick="setPf('android')"><i class="ti ti-brand-google-play" style="font-size:15px" aria-hidden="true"></i><div><div style="font-size:9px;color:var(--tl)" id="lbl-get-it">Get it on</div><div style="font-size:11px;font-weight:600">Google Play</div></div></button>
+          </div>
+        </div>
+      </div>
+      <div id="slot-consultant"></div>
+    </div>
+
+    <!-- PRICING -->
+    <div id="tab-pricing" style="display:none" class="tc">
+      <div class="slbl" id="lbl-choose-plan">Choose your plan</div>
+      <div class="pkgrid">
+        <div class="pkg" id="pkg-essential">
+          <span class="pkg-bl" style="background:#e8eaf6;color:#3949ab" id="pkg-bl1">Essential</span>
+          <div class="pkg-n" id="pkg-n1">Business Health</div>
+          <div><span class="pkg-p">$14.99</span><span class="pkg-pe">/mo</span></div>
+          <div class="pkg-d" id="pkg-d1">Core dashboard and financial tracking. Full clarity without AI-powered advice.</div>
+          <div class="pkg-f"><i class="ti ti-check" aria-hidden="true"></i> Health score dashboard</div>
+          <div class="pkg-f"><i class="ti ti-check" aria-hidden="true"></i> 5 health pillars</div>
+          <div class="pkg-f"><i class="ti ti-check" aria-hidden="true"></i> 12-month forecast charts</div>
+          <div class="pkg-f"><i class="ti ti-check" aria-hidden="true"></i> Insights &amp; alerts</div>
+          <div class="pkg-f"><i class="ti ti-check" aria-hidden="true"></i> Consultant contact</div>
+          <div class="pkg-f"><i class="ti ti-check" aria-hidden="true"></i> Web + iOS + Android</div>
+          <div class="pkg-f"><i class="ti ti-check" aria-hidden="true"></i> EN / ES / PT languages</div>
+          <div class="pkg-f dim"><i class="ti ti-x" aria-hidden="true"></i> AI-powered advice</div>
+          <div id="slot-ess-btn"></div>
+        </div>
+        <div class="pkg feat" id="pkg-aipro">
+          <span class="pkg-bl" style="background:var(--coral-l);color:var(--coral-d)" id="pkg-bl2">Most popular</span>
+          <div class="pkg-n" id="pkg-n2">AI Pro</div>
+          <div><span class="pkg-p">$14.99</span><span class="pkg-pe">/mo</span></div>
+          <div class="pkg-d" id="pkg-d2">Your full business health platform with unlimited AI Consultant advice — your 24/7 business advisor.</div>
+          <div class="pkg-f"><i class="ti ti-check" aria-hidden="true"></i> Everything in Essential</div>
+          <div class="pkg-f"><i class="ti ti-check" aria-hidden="true"></i> <strong>AI-powered advice</strong></div>
+          <div class="pkg-f"><i class="ti ti-check" aria-hidden="true"></i> <strong>Personalized action plans</strong></div>
+          <div class="pkg-f"><i class="ti ti-check" aria-hidden="true"></i> <strong>Forecast strategy advice</strong></div>
+          <div class="pkg-f"><i class="ti ti-check" aria-hidden="true"></i> <strong>Consultant prep report</strong></div>
+          <div class="pkg-f"><i class="ti ti-check" aria-hidden="true"></i> <strong>Unlimited AI queries</strong></div>
+          <div class="pkg-f"><i class="ti ti-check" aria-hidden="true"></i> Priority support</div>
+          <div id="slot-pro-btn"></div>
+        </div>
+      </div>
+      <div class="trn" id="lbl-trial">Cancel anytime · Secure payment via Stripe</div>
+    </div>
+  </div><!-- /vw-web -->
+
+  <!-- ── iOS VIEW ── -->
+  <div id="vw-ios" style="display:none">
+    <div class="pw">
+      <div class="i-sh">
+        <div class="i-sc">
+          <div class="i-sb"><div class="i-pl"></div><span class="i-t">9:41</span><div class="i-ic"><i class="ti ti-wifi" aria-hidden="true"></i><i class="ti ti-battery-2" aria-hidden="true"></i></div></div>
+          <div class="i-hr">
+            <div class="i-br">
+              <div class="i-ds">
+                <div class="i-d" style="width:4px;height:4px;margin-left:5px"></div>
+                <div class="i-d" style="width:6px;height:6px;margin-left:2px"></div>
+                <div class="i-d" style="width:8px;height:8px"></div>
+                <div class="i-d" style="width:10px;height:10px;margin-left:1px"></div>
+              </div>
+              <div style="width:1px;height:24px;background:rgba(255,255,255,.2);margin:0 7px"></div>
+              <div><div class="i-bn">Global 1080</div><div class="i-bt" id="ios-tag">Your Experienced Guide to Success!</div></div>
+            </div>
+            <div class="i-sr">
+              <svg width="64" height="64" viewBox="0 0 64 64" aria-hidden="true">
+                <circle cx="32" cy="32" r="25" fill="none" stroke="rgba(255,255,255,.12)" stroke-width="5"/>
+                <circle cx="32" cy="32" r="25" fill="none" stroke="#F05454" stroke-width="5"
+                  stroke-dasharray="157" stroke-dashoffset="39" stroke-linecap="round"
+                  transform="rotate(-90 32 32)" id="ios-arc"/>
+                <text x="32" y="37" text-anchor="middle" font-size="16" font-weight="700" fill="#fff" font-family="DM Serif Display,serif" id="ios-sc">75</text>
+              </svg>
+              <div>
+                <div class="i-sl" id="ios-sc-lbl">Health score</div>
+                <div class="i-sn" id="ios-sc-big">75</div>
+                <span style="display:inline-block;padding:2px 9px;border-radius:10px;font-size:10px;font-weight:600;background:rgba(240,84,84,.25);color:#ffaaaa;margin-top:3px" id="ios-bdg">Good</span>
+              </div>
+            </div>
+          </div>
+          <div class="i-bo">
+            <div class="i-mg">
+              <div class="i-m"><div class="i-ml" id="ios-lrev">Revenue</div><div class="i-mv" id="ios-rev">$24,500</div></div>
+              <div class="i-m"><div class="i-ml" id="ios-lprofit">Profit</div><div class="i-mv" id="ios-profit">$7,300</div></div>
+              <div class="i-m"><div class="i-ml" id="ios-lmargin">Margin</div><div class="i-mv" id="ios-margin">29.8%</div></div>
+              <div class="i-m"><div class="i-ml" id="ios-lrunway">Runway</div><div class="i-mv" id="ios-runway">6.2 mo</div></div>
+            </div>
+            <div class="i-ps" id="ios-pillars-lbl">Health pillars</div>
+            <div id="ios-pillars"></div>
+          </div>
+          <div class="i-tb">
+            <div class="i-ti on"><i class="ti ti-home" style="font-size:17px" aria-hidden="true"></i>Home</div>
+            <div class="i-ti"><i class="ti ti-chart-line" style="font-size:17px" aria-hidden="true"></i><span id="ios-t-fc">Forecast</span></div>
+            <div class="i-ti"><i class="ti ti-bulb" style="font-size:17px" aria-hidden="true"></i><span id="ios-t-ins">Insights</span></div>
+            <div class="i-ti"><i class="ti ti-phone" style="font-size:17px" aria-hidden="true"></i><span id="ios-t-con">Contact</span></div>
+          </div>
+          <div class="i-hi"></div>
+        </div>
+      </div>
+    </div>
+    <div class="pnlbl"><i class="ti ti-brand-apple" style="font-size:13px" aria-hidden="true"></i> iOS — AI Pro</div>
+  </div>
+
+  <!-- ── ANDROID VIEW ── -->
+  <div id="vw-android" style="display:none">
+    <div class="pw">
+      <div class="a-sh">
+        <div class="a-sc">
+          <div class="a-sb"><span class="a-t">9:41</span><div class="a-ic"><i class="ti ti-wifi" aria-hidden="true"></i><i class="ti ti-battery-2" aria-hidden="true"></i></div></div>
+          <div class="a-ab">
+            <div class="a-ad">
+              <div class="a-adot" style="width:4px;height:4px;margin-left:5px"></div>
+              <div class="a-adot" style="width:6px;height:6px;margin-left:2px"></div>
+              <div class="a-adot" style="width:8px;height:8px"></div>
+              <div class="a-adot" style="width:10px;height:10px;margin-left:1px"></div>
+            </div>
+            <div class="a-dv" style="margin:0 8px"></div>
+            <div><div class="a-at">Global 1080</div><div class="a-as" id="and-tag">Your Experienced Guide to Success!</div></div>
+          </div>
+          <div class="a-bo">
+            <div class="a-sc2">
+              <svg width="58" height="58" viewBox="0 0 58 58" aria-hidden="true">
+                <circle cx="29" cy="29" r="22" fill="none" stroke="#e0e0e0" stroke-width="5"/>
+                <circle cx="29" cy="29" r="22" fill="none" stroke="#F05454" stroke-width="5"
+                  stroke-dasharray="138" stroke-dashoffset="35" stroke-linecap="round"
+                  transform="rotate(-90 29 29)" id="and-arc"/>
+                <text x="29" y="34" text-anchor="middle" font-size="14" font-weight="700" fill="#111" font-family="DM Serif Display,serif" id="and-sc">75</text>
+              </svg>
+              <div>
+                <div class="a-sl" id="and-sc-lbl">Business health score</div>
+                <div class="a-sn" id="and-sc-big">75</div>
+                <div class="a-sb2" id="and-bdg" style="color:#F05454">Good</div>
+              </div>
+            </div>
+            <div class="a-mg">
+              <div class="a-m"><div class="a-ml" id="and-lrev">Revenue</div><div class="a-mv" id="and-rev">$24,500</div></div>
+              <div class="a-m"><div class="a-ml" id="and-lprofit">Profit</div><div class="a-mv" id="and-profit">$7,300</div></div>
+              <div class="a-m"><div class="a-ml" id="and-lmargin">Margin</div><div class="a-mv" id="and-margin">29.8%</div></div>
+              <div class="a-m"><div class="a-ml" id="and-lrunway">Runway</div><div class="a-mv" id="and-runway">6.2 mo</div></div>
+            </div>
+            <div class="a-ps" id="and-pillars-lbl">Health pillars</div>
+            <div id="and-pillars"></div>
+            <div class="a-fab" onclick="triggerAI('dashboard')" role="button" aria-label="AI advice">
+              <i class="ti ti-sparkles" style="font-size:20px;color:#fff" aria-hidden="true"></i>
+            </div>
+          </div>
+          <div class="a-nb">
+            <div class="a-ni on"><div class="a-nib"></div><i class="ti ti-home" style="font-size:17px" aria-hidden="true"></i>Home</div>
+            <div class="a-ni"><div class="a-nib"></div><i class="ti ti-chart-line" style="font-size:17px" aria-hidden="true"></i><span id="and-t-fc">Forecast</span></div>
+            <div class="a-ni"><div class="a-nib"></div><i class="ti ti-bulb" style="font-size:17px" aria-hidden="true"></i><span id="and-t-ins">Insights</span></div>
+            <div class="a-ni"><div class="a-nib"></div><i class="ti ti-phone" style="font-size:17px" aria-hidden="true"></i><span id="and-t-con">Contact</span></div>
+          </div>
+        </div>
+      </div>
+    </div>
+    <div class="pnlbl"><i class="ti ti-brand-android" style="font-size:13px" aria-hidden="true"></i> Android — AI Pro</div>
+  </div>
+
+</div><!-- /shell -->
+</div><!-- /app -->
+
+<script>
+/* ══════════════════════════════════════════
+   CONFIGURATION — REPLACE WITH YOUR VALUES
+   ══════════════════════════════════════════
+   1. Go to https://supabase.com → New project
+   2. Settings → API → copy URL + anon key
+   3. Run the SQL block at bottom of this script
+      once in your Supabase SQL Editor
+   ══════════════════════════════════════════ */
+const SB_URL  = 'YOUR_SUPABASE_URL';
+const SB_ANON = 'YOUR_SUPABASE_ANON_KEY';
+const sb = window.supabase.createClient(SB_URL, SB_ANON);
+
+/* ── STATE ── */
+let USER=null, PLAN='ai_pro', LANG='en', CM={};
+let FCH=null, SCH=null, SEL_PLAN='ai_pro';
+
+/* ── PILLAR DEFS ── */
+const PD=[{k:'cashflow',lk:'p-cashflow'},{k:'profit',lk:'p-profit'},{k:'growth',lk:'p-growth'},{k:'customer',lk:'p-customer'},{k:'debt',lk:'p-debt'}];
+
+/* ══════════════════════════════════════════
+   AI SLOT CONFIG
+   ══════════════════════════════════════════ */
+const SLOTS={
+  dashboard:{slot:'slot-dashboard',btn:'btn-d',icon:'ti-wand',titleK:'lbl-ai-adv',btnK:'lbl-analyze',pills:[['pill-d1','q_priorities'],['pill-d2','q_profitability'],['pill-d3','q_risk']],phK:'ph-d',ltK:'lkt-d',ldK:'lkd-d'},
+  forecast: {slot:'slot-forecast', btn:'btn-f',icon:'ti-telescope',titleK:'lbl-strat-adv',btnK:'lbl-get-fc',pills:[['pill-f1','q_90days'],['pill-f2','q_scenario']],phK:'ph-f',ltK:'lkt-f',ldK:'lkd-f'},
+  insights: {slot:'slot-insights', btn:'btn-i',icon:'ti-list-check',titleK:'lbl-act-plan',btnK:'lbl-build-plan',pills:[['pill-i1','q_30day'],['pill-i2','q_churn'],['pill-i3','q_costs']],phK:'ph-i',ltK:'lkt-i',ldK:'lkd-i'},
+  consultant:{slot:'slot-consultant',btn:'btn-c',icon:'ti-report',titleK:'lbl-prep-cons',btnK:'lbl-gen-sum',pills:[['pill-c1','q_prep'],['pill-c2','q_keyq'],['pill-c3','q_exec']],phK:'ph-c',ltK:'lkt-c',ldK:'lkd-c'},
+};
+
+/* ══════════════════════════════════════════
+   STRINGS
+   ══════════════════════════════════════════ */
+const STR={
+  en:{sym:'$',loc:'en-US',ru:'mo',fmt:n=>'$'+Math.round(n).toLocaleString('en-US'),
+    'auth-tag':'Your Experienced Guide to Success!','b-tag':'Your Experienced Guide to Success!',
+    'at-login-lbl':'Sign in','at-signup-lbl':'Create account',
+    'a-ttl-login':'Welcome back','a-sub-login':'Sign in to your business health dashboard.',
+    'lbl-email-f':'Email address','lbl-pw-f':'Password','login-btn-t':'Sign in','lbl-forgot':'Forgot password?',
+    'lbl-or':'or','lbl-no-acc':"Don't have an account?",'lbl-create':' Create one free',
+    'a-ttl-signup':'Create your account','a-sub-signup':'Subscribe on Web ($14.99/mo). Free on iOS & Android with the same account.',
+    'lbl-name-f':'Full name','lbl-email-f2':'Email address','lbl-pw-f2':'Password',
+    'lbl-pick-plan':'Choose your plan','po-n1':'AI Consultant Pro','po-n2':'AI Consultant Pro','po-hot':'Complete solution',
+    'po-f1':'AI Consultant Pro — complete business health platform.','po-f2':'Full dashboard + unlimited AI Consultant advice.',
+    'signup-btn-t':'Create account & subscribe','auth-terms':'By subscribing you agree to our Terms of Service. Billed monthly at $14.99. Free access on iOS & Android with the same account. One active session at a time.',
+    'a-ttl-forgot':'Reset password','a-sub-forgot':"We'll send a reset link to your email.",
+    'forgot-btn-t':'Send reset link','lbl-back':'← Back to sign in',
+    'dd-up-lbl':'Manage subscription','dd-so':'Sign out',
+    'lbl-sc-ttl':'Business health score','lbl-metrics':'Key metrics this month',
+    'lbl-rev':'Monthly revenue','lbl-exp':'Expenses','lbl-profit':'Net profit',
+    'lbl-margin':'Profit margin','lbl-runway':'Cash runway','lbl-pillars':'Health pillars',
+    'lbl-enter':'Enter your monthly numbers',
+    'il-rev':'Monthly revenue ($)','il-exp':'Monthly expenses ($)','il-cash':'Cash on hand ($)','il-debt':'Outstanding debt ($)',
+    'il-cust':'Active customers','il-churn':'Lost customers this month',
+    'il-growth':'Revenue growth (%/mo)','il-expgrow':'Expense growth (%/mo)',
+    'btn-upd':'Update dashboard','btn-upd-ai':'Update & get AI advice',
+    'lbl-12mo':'12-month projection','lbl-f-rev':'Revenue in 12 mo','lbl-f-profit':'Profit in 12 mo','lbl-f-score':'Score trend',
+    'lbl-fc':'Monthly forecast','lbl-sc-trend':'Health score trend',
+    'leg-rev':'Revenue','leg-exp':'Expenses','leg-profit':'Profit',
+    'lbl-ins-ttl':'Key insights & alerts',
+    'lbl-contact':'Contact us','lbl-send':'Send','lbl-usa':'Contact (USA)','lbl-pr':'Contacto (PR)','lbl-br':'Contato (BR)',
+    'lbl-email-us':'Email us','lbl-prep':'Prepare my report','lbl-get-app':'Get the app',
+    'lbl-dl-on':'Download on the','lbl-get-it':'Get it on',
+    'lbl-choose-plan':'Your subscription','lbl-trial':'Cancel anytime · Secure payment via Stripe',
+    'nav-dashboard':'Dashboard','nav-inputs':'My numbers','nav-forecast':'Forecast',
+    'nav-insights':'Insights','nav-consultant':'Consultant','nav-pricing':'Plans',
+    'ios-tag':'Your Experienced Guide to Success!','and-tag':'Your Experienced Guide to Success!',
+    'ios-sc-lbl':'Health score','ios-lrev':'Revenue','ios-lprofit':'Profit','ios-lmargin':'Margin','ios-lrunway':'Runway','ios-pillars-lbl':'Health pillars',
+    'ios-t-fc':'Forecast','ios-t-ins':'Insights','ios-t-con':'Contact',
+    'and-sc-lbl':'Business health score','and-lrev':'Revenue','and-lprofit':'Profit','and-lmargin':'Margin','and-lrunway':'Runway','and-pillars-lbl':'Health pillars',
+    'and-t-fc':'Forecast','and-t-ins':'Insights','and-t-con':'Contact',
+    'cons-tag':'Your Experienced Guide to Success!',
+    'lbl-ai-adv':"AI Consultant advice",'lbl-analyze':'Analyze my business',
+    'lbl-strat-adv':'Strategic forecast advice','lbl-get-fc':'Get forecast advice',
+    'lbl-act-plan':'Action plan','lbl-build-plan':'Build my action plan',
+    'lbl-prep-cons':'Prepare for your consultation','lbl-gen-sum':'Generate my summary',
+    'pill-d1':'Top priorities','pill-d2':'Profitability outlook','pill-d3':'Biggest risk',
+    'pill-f1':'Next 90 days','pill-f2':'Best scenario',
+    'pill-i1':'30-day plan','pill-i2':'Reduce churn','pill-i3':'Cut costs',
+    'pill-c1':'What to prepare','pill-c2':'Key questions','pill-c3':'Executive summary',
+    'ph-d':'Click "Analyze my business" for personalized advice based on your numbers.',
+    'ph-f':'Click for strategic advice on your 12-month trajectory.',
+    'ph-i':'Click to build a prioritized action plan.',
+    'ph-c':'Generate a business summary to share with your Global 1080 consultant.',
+    'lkt-d':'AI Consultant advice','lkd-d':'Subscribe to AI Consultant Pro ($14.99/mo) for personalized AI analysis, recommendations, and action plans.',
+    'lkt-f':'Strategic forecast advice — AI Pro','lkd-f':'Upgrade to AI Pro to get strategic guidance on your 12-month trajectory.',
+    'lkt-i':'Action plan builder — AI Pro','lkd-i':'Upgrade to AI Pro to get a concrete, prioritized action plan based on your specific alerts.',
+    'lkt-c':'Consultant prep — AI Pro','lkd-c':'Upgrade to AI Pro to generate a professional executive summary in seconds.',
+    'lk-upgrade':'Subscribe — $14.99/mo',
+    'pkg-bl1':'AI Consultant Pro','pkg-n1':'AI Consultant Pro','pkg-bl2':'Complete solution','pkg-n2':'AI Consultant Pro',
+    'pkg-d1':'AI Consultant Pro — complete business health platform.',
+    'pkg-d2':'Full AI Consultant advice, action plans, forecast strategy, and consultant prep — your 24/7 business advisor.',
+    'sc-excellent':'Outstanding. Keep scaling what is working.','sc-good':'In good shape. Focus on growth and retention.',
+    'sc-fair':'Some areas need attention. Check your insights.','sc-atrisk':'Immediate action needed. Review insights now.',
+    'lbl-excellent':'Excellent','lbl-good':'Good','lbl-fair':'Fair','lbl-atrisk':'At risk',
+    'p-cashflow':'Cash flow','p-profit':'Profitability','p-growth':'Revenue growth','p-customer':'Customer health','p-debt':'Debt load',
+    thinking:'Thinking',
+    email_subject:'Business Health Report — Global 1080',
+    email_body:'Hello Global 1080 team,\n\nI would like to schedule a consultation.\n\nPlease contact me at your earliest convenience.\n\nThank you,',
+    q_priorities:'What are my top 3 priorities to improve my business health score?',
+    q_profitability:'Am I on track for a profitable year based on my current numbers?',
+    q_risk:'What is my biggest financial risk right now?',
+    q_90days:'What should I do in the next 90 days to improve my 12-month outlook?',
+    q_scenario:'What scenario would most improve my 12-month forecast?',
+    q_30day:'Give me a concrete 30-day action plan to fix my most critical issues.',
+    q_churn:'How do I improve customer retention based on my churn numbers?',
+    q_costs:'What expenses should I cut first to improve profitability?',
+    q_prep:'What documents should I prepare before my Global 1080 consultation?',
+    q_keyq:'What key questions should I ask my Global 1080 consultant?',
+    q_exec:'Write a concise executive summary of my business health for my Global 1080 consultant.',
+    sys_d:'Focus: overall health assessment and top 2-3 priorities for improvement.',
+    sys_f:'Focus: strategic advice for the 12-month trajectory and key levers to pull now.',
+    sys_i:'Focus: prioritized, concrete action plan addressing the most critical issues first.',
+    sys_c:'Focus: prepare the owner for a productive Global 1080 consultation with a clear executive summary.',
+  },
+  es:{sym:'$',loc:'es-US',ru:'meses',fmt:n=>'$'+Math.round(n).toLocaleString('es-US'),
+    'auth-tag':'Tu Guia Experimentada hacia el Exito!','b-tag':'Tu Guia Experimentada hacia el Exito!',
+    'at-login-lbl':'Iniciar sesion','at-signup-lbl':'Crear cuenta',
+    'a-ttl-login':'Bienvenido de nuevo','a-sub-login':'Accede a tu panel de salud empresarial.',
+    'lbl-email-f':'Correo electronico','lbl-pw-f':'Contrasena','login-btn-t':'Iniciar sesion','lbl-forgot':'Olvide mi contrasena',
+    'lbl-or':'o','lbl-no-acc':'No tienes cuenta?','lbl-create':' Creala gratis',
+    'a-ttl-signup':'Crea tu cuenta','a-sub-signup':'Suscripcion Web ($14.99/mes). Gratis en iOS y Android con la misma cuenta.',
+    'lbl-name-f':'Nombre completo','lbl-email-f2':'Correo electronico','lbl-pw-f2':'Contrasena',
+    'lbl-pick-plan':'Elige tu plan','po-n1':'AI Consultant Pro','po-n2':'AI Consultant Pro','po-hot':'Solucion completa',
+    'po-f1':'Plataforma completa — AI Consultant Pro.','po-f2':'Panel completo + asesoramiento ilimitado del AI Consultant.',
+    'signup-btn-t':'Crear cuenta y suscribirse','auth-terms':'Al suscribirte aceptas nuestros Terminos de Servicio. Facturado mensualmente $14.99. Acceso gratuito en iOS y Android con la misma cuenta. Solo una sesion activa a la vez.',
+    'a-ttl-forgot':'Restablecer contrasena','a-sub-forgot':'Te enviaremos un enlace de restablecimiento.',
+    'forgot-btn-t':'Enviar enlace','lbl-back':'← Volver al inicio de sesion',
+    'dd-up-lbl':'Gestionar suscripcion','dd-so':'Cerrar sesion',
+    'lbl-sc-ttl':'Puntuacion de salud empresarial','lbl-metrics':'Metricas clave este mes',
+    'lbl-rev':'Ingresos mensuales','lbl-exp':'Gastos','lbl-profit':'Ganancia neta',
+    'lbl-margin':'Margen de ganancia','lbl-runway':'Reserva de efectivo','lbl-pillars':'Pilares de salud',
+    'lbl-enter':'Ingresa tus numeros mensuales',
+    'il-rev':'Ingresos mensuales ($)','il-exp':'Gastos mensuales ($)','il-cash':'Efectivo disponible ($)','il-debt':'Deuda pendiente ($)',
+    'il-cust':'Clientes activos','il-churn':'Clientes perdidos este mes',
+    'il-growth':'Crecimiento de ingresos (%/mes)','il-expgrow':'Crecimiento de gastos (%/mes)',
+    'btn-upd':'Actualizar panel','btn-upd-ai':'Actualizar y obtener consejo',
+    'lbl-12mo':'Pronostico a 12 meses','lbl-f-rev':'Ingresos en 12 meses','lbl-f-profit':'Ganancia en 12 meses','lbl-f-score':'Tendencia',
+    'lbl-fc':'Pronostico mensual','lbl-sc-trend':'Tendencia de puntuacion de salud',
+    'leg-rev':'Ingresos','leg-exp':'Gastos','leg-profit':'Ganancia',
+    'lbl-ins-ttl':'Perspectivas y alertas clave',
+    'lbl-contact':'Contactanos','lbl-send':'Enviar','lbl-usa':'Contacto (EE.UU.)','lbl-pr':'Contacto (PR)','lbl-br':'Contato (BR)',
+    'lbl-email-us':'Escribenos','lbl-prep':'Preparar mi informe','lbl-get-app':'Descarga la app',
+    'lbl-dl-on':'Descargar en','lbl-get-it':'Disponible en',
+    'lbl-choose-plan':'Tu suscripcion','lbl-trial':'Cancela cuando quieras · Pago seguro via Stripe',
+    'nav-dashboard':'Panel','nav-inputs':'Mis numeros','nav-forecast':'Pronostico',
+    'nav-insights':'Perspectivas','nav-consultant':'Consultor','nav-pricing':'Planes',
+    'ios-tag':'Tu Guia Experimentada hacia el Exito!','and-tag':'Tu Guia Experimentada hacia el Exito!',
+    'ios-sc-lbl':'Puntuacion de salud','ios-lrev':'Ingresos','ios-lprofit':'Ganancia','ios-lmargin':'Margen','ios-lrunway':'Reserva','ios-pillars-lbl':'Pilares de salud',
+    'ios-t-fc':'Pronostico','ios-t-ins':'Perspectivas','ios-t-con':'Contacto',
+    'and-sc-lbl':'Puntuacion de salud empresarial','and-lrev':'Ingresos','and-lprofit':'Ganancia','and-lmargin':'Margen','and-lrunway':'Reserva','and-pillars-lbl':'Pilares de salud',
+    'and-t-fc':'Pronostico','and-t-ins':'Perspectivas','and-t-con':'Contacto',
+    'cons-tag':'Tu Guia Experimentada hacia el Exito!',
+    'lbl-ai-adv':'Consejo del AI Consultant','lbl-analyze':'Analizar mi negocio',
+    'lbl-strat-adv':'Consejo estrategico de pronostico','lbl-get-fc':'Obtener consejo de pronostico',
+    'lbl-act-plan':'Plan de accion','lbl-build-plan':'Crear plan de accion',
+    'lbl-prep-cons':'Preparate para tu consulta','lbl-gen-sum':'Generar mi resumen',
+    'pill-d1':'Prioridades principales','pill-d2':'Perspectiva de rentabilidad','pill-d3':'Mayor riesgo',
+    'pill-f1':'Proximos 90 dias','pill-f2':'Mejor escenario',
+    'pill-i1':'Plan de 30 dias','pill-i2':'Reducir abandono','pill-i3':'Reducir gastos',
+    'pill-c1':'Que preparar','pill-c2':'Preguntas clave','pill-c3':'Resumen ejecutivo',
+    'ph-d':'Haz clic en "Analizar mi negocio" para obtener consejos personalizados.',
+    'ph-f':'Haz clic para consejos estrategicos sobre tu trayectoria.',
+    'ph-i':'Haz clic para crear un plan de accion priorizado.',
+    'ph-c':'Genera un resumen listo para compartir con tu consultor de Global 1080.',
+    'lkt-d':'Consejo del AI Consultant','lkd-d':'Suscribete a AI Consultant Pro ($14.99/mes) para obtener analisis y planes de accion personalizados.',
+    'lkt-f':'Consejo de pronostico — AI Pro','lkd-f':'Actualiza a AI Pro para obtener orientacion estrategica sobre tu trayectoria de 12 meses.',
+    'lkt-i':'Constructor de plan de accion — AI Pro','lkd-i':'Actualiza a AI Pro para obtener un plan de accion concreto basado en tus alertas especificas.',
+    'lkt-c':'Preparacion para consulta — AI Pro','lkd-c':'Actualiza a AI Pro para generar un resumen ejecutivo profesional en segundos.',
+    'lk-upgrade':'Suscribirse — $14.99/mes',
+    'pkg-bl1':'Esencial','pkg-n1':'Salud Empresarial','pkg-bl2':'Solucion completa','pkg-n2':'AI Consultant Pro',
+    'pkg-d1':'AI Consultant Pro — plataforma completa de salud empresarial.',
+    'pkg-d2':'Panel, pronosticos, alertas y asesoramiento ilimitado del AI Consultant.',
+    'sc-excellent':'Excelente. Sigue escalando lo que funciona.','sc-good':'En buena forma. Enfocate en el crecimiento y la retencion.',
+    'sc-fair':'Algunas areas necesitan atencion. Revisa tus perspectivas.','sc-atrisk':'Accion inmediata requerida. Revisa las alertas ahora.',
+    'lbl-excellent':'Excelente','lbl-good':'Bueno','lbl-fair':'Regular','lbl-atrisk':'En riesgo',
+    'p-cashflow':'Flujo de caja','p-profit':'Rentabilidad','p-growth':'Crecimiento','p-customer':'Clientes','p-debt':'Deuda',
+    thinking:'Pensando',
+    email_subject:'Informe de Salud Empresarial — Global 1080',
+    email_body:'Hola equipo de Global 1080,\n\nMe gustaria agendar una consulta.\n\nPor favor contactenme a la brevedad.\n\nGracias,',
+    q_priorities:'Cuales son mis 3 principales prioridades para mejorar mi puntuacion de salud empresarial?',
+    q_profitability:'Voy por buen camino para un ano rentable segun mis numeros actuales?',
+    q_risk:'Cual es mi mayor riesgo financiero en este momento?',
+    q_90days:'Que debo hacer en los proximos 90 dias para mejorar mis perspectivas a 12 meses?',
+    q_scenario:'Que escenario mejoraria mas mi pronostico a 12 meses?',
+    q_30day:'Dame un plan de accion concreto de 30 dias para solucionar mis problemas mas criticos.',
+    q_churn:'Como mejoro la retencion de clientes segun mis cifras de abandono?',
+    q_costs:'Que gastos debo reducir primero para mejorar la rentabilidad?',
+    q_prep:'Que documentos debo preparar antes de mi consulta con Global 1080?',
+    q_keyq:'Que preguntas clave debo hacerle a mi consultor de Global 1080?',
+    q_exec:'Escribe un resumen ejecutivo conciso de la salud de mi negocio para mi consultor de Global 1080.',
+    sys_d:'Responde en espanol. Enfocate en: evaluacion general y las 2-3 principales prioridades.',
+    sys_f:'Responde en espanol. Enfocate en: consejos estrategicos para la trayectoria de 12 meses.',
+    sys_i:'Responde en espanol. Enfocate en: plan de accion priorizado y concreto.',
+    sys_c:'Responde en espanol. Enfocate en: preparar al empresario para una consulta productiva con Global 1080.',
+  },
+  pt:{sym:'R$',loc:'pt-BR',ru:'meses',fmt:n=>'R$\u00a0'+Math.round(n).toLocaleString('pt-BR'),
+    'auth-tag':'Seu Guia Experiente para o Sucesso!','b-tag':'Seu Guia Experiente para o Sucesso!',
+    'at-login-lbl':'Entrar','at-signup-lbl':'Criar conta',
+    'a-ttl-login':'Bem-vindo de volta','a-sub-login':'Entre no seu painel de saude empresarial.',
+    'lbl-email-f':'Endereco de e-mail','lbl-pw-f':'Senha','login-btn-t':'Entrar','lbl-forgot':'Esqueci minha senha',
+    'lbl-or':'ou','lbl-no-acc':'Nao tem uma conta?','lbl-create':' Crie gratuitamente',
+    'a-ttl-signup':'Crie sua conta','a-sub-signup':'Assinatura Web ($14,99/mes). Gratis no iOS e Android com a mesma conta.',
+    'lbl-name-f':'Nome completo','lbl-email-f2':'Endereco de e-mail','lbl-pw-f2':'Senha',
+    'lbl-pick-plan':'Escolha seu plano','po-n1':'AI Consultant Pro','po-n2':'AI Consultant Pro','po-hot':'Solucao completa',
+    'po-f1':'Plataforma completa — AI Consultant Pro.','po-f2':'Painel completo + aconselhamento ilimitado do AI Consultant.',
+    'signup-btn-t':'Criar conta e assinar','auth-terms':'Ao assinar voce concorda com nossos Termos de Servico. Cobrado mensalmente $14.99. Acesso gratuito no iOS e Android com a mesma conta. Apenas uma sessao ativa por vez.',
+    'a-ttl-forgot':'Redefinir senha','a-sub-forgot':'Enviaremos um link de redefinicao para seu e-mail.',
+    'forgot-btn-t':'Enviar link de redefinicao','lbl-back':'← Voltar para o login',
+    'dd-up-lbl':'Gerenciar assinatura','dd-so':'Sair',
+    'lbl-sc-ttl':'Pontuacao de saude empresarial','lbl-metrics':'Metricas principais do mes',
+    'lbl-rev':'Receita mensal','lbl-exp':'Despesas','lbl-profit':'Lucro liquido',
+    'lbl-margin':'Margem de lucro','lbl-runway':'Reserva de caixa','lbl-pillars':'Pilares de saude',
+    'lbl-enter':'Insira seus numeros mensais',
+    'il-rev':'Receita mensal (R$)','il-exp':'Despesas mensais (R$)','il-cash':'Dinheiro disponivel (R$)','il-debt':'Divida pendente (R$)',
+    'il-cust':'Clientes ativos','il-churn':'Clientes perdidos no mes',
+    'il-growth':'Crescimento de receita (%/mes)','il-expgrow':'Crescimento de despesas (%/mes)',
+    'btn-upd':'Atualizar painel','btn-upd-ai':'Atualizar e obter conselho',
+    'lbl-12mo':'Previsao de 12 meses','lbl-f-rev':'Receita em 12 meses','lbl-f-profit':'Lucro em 12 meses','lbl-f-score':'Tendencia',
+    'lbl-fc':'Previsao mensal','lbl-sc-trend':'Tendencia da pontuacao de saude',
+    'leg-rev':'Receita','leg-exp':'Despesas','leg-profit':'Lucro',
+    'lbl-ins-ttl':'Principais insights e alertas',
+    'lbl-contact':'Fale conosco','lbl-send':'Enviar','lbl-usa':'Contato (EUA)','lbl-pr':'Contacto (PR)','lbl-br':'Contato (BR)',
+    'lbl-email-us':'Envie um e-mail','lbl-prep':'Preparar meu relatorio','lbl-get-app':'Baixe o app',
+    'lbl-dl-on':'Disponivel na','lbl-get-it':'Disponivel no',
+    'lbl-choose-plan':'Sua assinatura','lbl-trial':'Cancele quando quiser · Pagamento seguro via Stripe',
+    'nav-dashboard':'Painel','nav-inputs':'Meus numeros','nav-forecast':'Previsao',
+    'nav-insights':'Insights','nav-consultant':'Consultor','nav-pricing':'Planos',
+    'ios-tag':'Seu Guia Experiente para o Sucesso!','and-tag':'Seu Guia Experiente para o Sucesso!',
+    'ios-sc-lbl':'Pontuacao de saude','ios-lrev':'Receita','ios-lprofit':'Lucro','ios-lmargin':'Margem','ios-lrunway':'Reserva','ios-pillars-lbl':'Pilares de saude',
+    'ios-t-fc':'Previsao','ios-t-ins':'Insights','ios-t-con':'Contato',
+    'and-sc-lbl':'Pontuacao de saude empresarial','and-lrev':'Receita','and-lprofit':'Lucro','and-lmargin':'Margem','and-lrunway':'Reserva','and-pillars-lbl':'Pilares de saude',
+    'and-t-fc':'Previsao','and-t-ins':'Insights','and-t-con':'Contato',
+    'cons-tag':'Seu Guia Experiente para o Sucesso!',
+    'lbl-ai-adv':'Conselho do AI Consultant','lbl-analyze':'Analisar meu negocio',
+    'lbl-strat-adv':'Conselho estrategico de previsao','lbl-get-fc':'Obter conselho de previsao',
+    'lbl-act-plan':'Plano de acao','lbl-build-plan':'Criar meu plano de acao',
+    'lbl-prep-cons':'Prepare-se para sua consulta','lbl-gen-sum':'Gerar meu resumo',
+    'pill-d1':'Prioridades principais','pill-d2':'Perspectiva de rentabilidade','pill-d3':'Maior risco',
+    'pill-f1':'Proximos 90 dias','pill-f2':'Melhor cenario',
+    'pill-i1':'Plano de 30 dias','pill-i2':'Reduzir churn','pill-i3':'Cortar custos',
+    'pill-c1':'O que preparar','pill-c2':'Perguntas-chave','pill-c3':'Resumo executivo',
+    'ph-d':'Clique em "Analisar meu negocio" para conselhos personalizados.',
+    'ph-f':'Clique para conselhos estrategicos sobre sua trajetoria.',
+    'ph-i':'Clique para criar um plano de acao priorizado.',
+    'ph-c':'Gere um resumo para compartilhar com seu consultor da Global 1080.',
+    'lkt-d':'Conselho do AI Consultant','lkd-d':'Atualize para o AI Pro (R$\u00a019,99/mes) para obter analises personalizadas e planos de acao.',
+    'lkt-f':'Conselho de previsao — AI Pro','lkd-f':'Atualize para o AI Pro para obter orientacao estrategica sobre sua trajetoria de 12 meses.',
+    'lkt-i':'Criador de plano de acao — AI Pro','lkd-i':'Atualize para o AI Pro para obter um plano de acao concreto baseado nos seus alertas especificos.',
+    'lkt-c':'Preparacao para consulta — AI Pro','lkd-c':'Atualize para o AI Pro para gerar um resumo executivo profissional em segundos.',
+    'lk-upgrade':'Atualizar para AI Pro — R$\u00a019,99/mes',
+    'pkg-bl1':'Essencial','pkg-n1':'Saude Empresarial','pkg-bl2':'Solucao completa','pkg-n2':'AI Consultant Pro',
+    'pkg-d1':'AI Consultant Pro — plataforma completa de saude empresarial.',
+    'pkg-d2':'Painel, previsoes, alertas e aconselhamento ilimitado do AI Consultant.',
+    'sc-excellent':'Excelente. Continue escalando o que funciona.','sc-good':'Em boa forma. Foque no crescimento e retencao.',
+    'sc-fair':'Algumas areas precisam de atencao. Verifique seus insights.','sc-atrisk':'Acao imediata necessaria. Revise os alertas agora.',
+    'lbl-excellent':'Excelente','lbl-good':'Bom','lbl-fair':'Regular','lbl-atrisk':'Em risco',
+    'p-cashflow':'Fluxo de caixa','p-profit':'Rentabilidade','p-growth':'Crescimento','p-customer':'Clientes','p-debt':'Divida',
+    thinking:'Pensando',
+    email_subject:'Relatorio de Saude Empresarial — Global 1080',
+    email_body:'Ola equipe Global 1080,\n\nGostaria de agendar uma consulta.\n\nPor favor entre em contato o mais breve possivel.\n\nObrigado,',
+    q_priorities:'Quais sao minhas 3 principais prioridades para melhorar minha pontuacao de saude empresarial?',
+    q_profitability:'Estou no caminho certo para um ano lucrativo com meus numeros atuais?',
+    q_risk:'Qual e o meu maior risco financeiro agora?',
+    q_90days:'O que devo fazer nos proximos 90 dias para melhorar minhas perspectivas de 12 meses?',
+    q_scenario:'Qual cenario melhoraria mais minha previsao de 12 meses?',
+    q_30day:'Me de um plano de acao concreto de 30 dias para resolver meus problemas mais criticos.',
+    q_churn:'Como melhoro a retencao de clientes com base nos meus numeros de churn?',
+    q_costs:'Quais despesas devo cortar primeiro para melhorar a rentabilidade?',
+    q_prep:'Quais documentos devo preparar antes da minha consulta com a Global 1080?',
+    q_keyq:'Quais perguntas-chave devo fazer ao meu consultor da Global 1080?',
+    q_exec:'Escreva um resumo executivo conciso da saude do meu negocio para meu consultor da Global 1080.',
+    sys_d:'Responda em portugues. Foque em: avaliacao geral e as 2-3 principais prioridades.',
+    sys_f:'Responda em portugues. Foque em: conselhos estrategicos para a trajetoria de 12 meses.',
+    sys_i:'Responda em portugues. Foque em: plano de acao priorizado e concreto.',
+    sys_c:'Responda em portugues. Foque em: preparar o empresario para uma consulta produtiva com a Global 1080.',
+  },
+};
+const S=k=>(STR[LANG]||STR.en)[k]||'';
+const Q=k=>(STR[LANG]||STR.en)[k]||'';
+const fmt=n=>STR[LANG].fmt(n);
+const sT=(id,v)=>{const e=document.getElementById(id);if(e&&v!==undefined)e.textContent=v;};
+
+/* ── APPLY ALL STRINGS ── */
+const TXT_IDS=['auth-tag','b-tag','at-login-lbl','at-signup-lbl','a-ttl-login','a-sub-login',
+  'lbl-email-f','lbl-pw-f','login-btn-t','lbl-forgot','lbl-or','lbl-no-acc','lbl-create',
+  'a-ttl-signup','a-sub-signup','lbl-name-f','lbl-email-f2','lbl-pw-f2','lbl-pick-plan',
+  'po-n1','po-n2','po-hot','po-f1','po-f2','signup-btn-t','auth-terms',
+  'a-ttl-forgot','a-sub-forgot','forgot-btn-t','lbl-back',
+  'dd-up-lbl','dd-so','lbl-sc-ttl','lbl-metrics','lbl-rev','lbl-exp','lbl-profit',
+  'lbl-margin','lbl-runway','lbl-pillars','lbl-enter',
+  'il-rev','il-exp','il-cash','il-debt','il-cust','il-churn','il-growth','il-expgrow',
+  'btn-upd','btn-upd-ai','lbl-12mo','lbl-f-rev','lbl-f-profit','lbl-f-score',
+  'lbl-fc','lbl-sc-trend','leg-rev','leg-exp','leg-profit','lbl-ins-ttl',
+  'lbl-contact','lbl-send','lbl-usa','lbl-pr','lbl-br','lbl-email-us','lbl-prep',
+  'lbl-get-app','lbl-dl-on','lbl-get-it','lbl-choose-plan','lbl-trial',
+  'nav-dashboard','nav-inputs','nav-forecast','nav-insights','nav-consultant','nav-pricing',
+  'ios-tag','and-tag','ios-sc-lbl','ios-lrev','ios-lprofit','ios-lmargin','ios-lrunway','ios-pillars-lbl',
+  'ios-t-fc','ios-t-ins','ios-t-con',
+  'and-sc-lbl','and-lrev','and-lprofit','and-lmargin','and-lrunway','and-pillars-lbl',
+  'and-t-fc','and-t-ins','and-t-con','cons-tag',
+  'pkg-bl1','pkg-n1','pkg-bl2','pkg-n2','pkg-d1','pkg-d2',
+];
+/* Detect platform label */
+function getPlatform(){
+  const ua=navigator.userAgent||'';
+  if(/iPhone|iPad|iPod/.test(ua))return'iOS';
+  if(/Android/.test(ua))return'Android';
+  return'Web';
+}
+
+function applyStrings(){
+  /* Update platform badge */
+  const pn=document.getElementById('platform-name');
+  const pi=document.getElementById('platform-icon');
+  const plat=getPlatform();
+  if(pn)pn.textContent=plat;
+  if(pi){
+    pi.className='ti '+
+      (plat==='iOS'?'ti-brand-apple':plat==='Android'?'ti-brand-android':'ti-device-laptop');
+  }
+  TXT_IDS.forEach(id=>sT(id,S(id)));
+  ['pfx-1','pfx-2','pfx-3','pfx-4'].forEach(id=>sT(id,S('sym')));
+  renderSlots();renderPkgBtns();
+}
+function setLang(l){LANG=l;applyStrings();recalc();}
+
+/* ══════════════════════════════════════════
+   AUTH
+   ══════════════════════════════════════════ */
+function showATab(t){
+  ['login','signup','forgot'].forEach(x=>{
+    document.getElementById('auth-'+x).style.display=x===t?'':'none';
+    const b=document.getElementById('at-'+x);if(b)b.classList.toggle('on',x===t);
+  });
+  document.querySelector('.a-tabs').style.display=t==='forgot'?'none':'';
+}
+function pickPlan(p){ SEL_PLAN='ai_pro'; }
+function showMsg(el,txt,type){el.textContent=txt;el.className='a-msg '+type;el.style.display='block';}
+
+async function doLogin(){
+  const em=document.getElementById('l-email').value.trim();
+  const pw=document.getElementById('l-pw').value;
+  const btn=document.getElementById('btn-login');
+  const msg=document.getElementById('login-msg');
+  if(!em||!pw){showMsg(msg,'Please enter your email and password.','err');return;}
+  btn.disabled=true;btn.innerHTML='<div class="spin"></div>';
+  const{data,error}=await sb.auth.signInWithPassword({email:em,password:pw});
+  if(error){showMsg(msg,error.message,'err');btn.disabled=false;btn.innerHTML=`<span id="login-btn-t">${S('login-btn-t')}</span>`;return;}
+  await loadUser(data.user);
+}
+async function doSignup(){
+  const nm=document.getElementById('s-name').value.trim();
+  const em=document.getElementById('s-email').value.trim();
+  const pw=document.getElementById('s-pw').value;
+  const btn=document.getElementById('btn-signup');
+  const msg=document.getElementById('signup-msg');
+  if(!nm||!em||!pw){showMsg(msg,'Please fill in all fields.','err');return;}
+  if(pw.length<8){showMsg(msg,'Password must be at least 8 characters.','err');return;}
+  btn.disabled=true;btn.innerHTML='<div class="spin"></div>';
+  const{data,error}=await sb.auth.signUp({email:em,password:pw,options:{data:{full_name:nm,plan:'ai_pro'}}});
+  if(error){showMsg(msg,error.message,'err');btn.disabled=false;btn.innerHTML=`<span>${S('signup-btn-t')}</span>`;return;}
+  if(data.user){
+    await sb.from('profiles').upsert({id:data.user.id,email:em,full_name:nm,plan:'ai_pro'});
+    await loadUser(data.user);
+  } else {
+    showMsg(msg,'Check your email to confirm your account, then sign in.','ok');
+    btn.disabled=false;btn.innerHTML=`<span>${S('signup-btn-t')}</span>`;
+  }
+}
+async function doForgot(){
+  const em=document.getElementById('f-email').value.trim();
+  const msg=document.getElementById('forgot-msg');
+  if(!em){showMsg(msg,'Please enter your email address.','err');return;}
+  const{error}=await sb.auth.resetPasswordForEmail(em);
+  if(error){showMsg(msg,error.message,'err');return;}
+  showMsg(msg,'Reset link sent! Check your inbox.','ok');
+}
+async function doSignOut(){
+  const uid=USER?.id;
+  if(typeof clearSession==='function')await clearSession(uid);
+  await sb.auth.signOut();
+  USER=null;PLAN='ai_pro';
+  document.getElementById('app').style.display='none';
+  document.getElementById('auth').style.display='flex';
+  showATab('login');closeDD();
+}
+async function loadUser(user){
+  USER=user;
+  /* Register this session — kicks any concurrent session */
+  if(typeof registerSession==='function')await registerSession(user.id);
+  const{data}=await sb.from('profiles').select('plan,full_name').eq('id',user.id).single();
+  PLAN='ai_pro'; // All users are AI Pro
+  const name=data?.full_name||user.email.split('@')[0];
+  const ini=name.split(' ').map(w=>w[0]).join('').toUpperCase().slice(0,2);
+  sT('uav',ini);sT('dd-nm',name);sT('dd-em',user.email);
+  updatePlanUI();
+  document.getElementById('auth').style.display='none';
+  document.getElementById('app').style.display='block';
+  /* Show platform in the user chip */
+  const chip=document.getElementById('pchip');
+  if(chip&&typeof getPlatform==='function')chip.title=`Signed in on ${getPlatform()}`;
+  recalc();applyStrings();
+  /* Start session poll */
+  if(typeof startSessionPoll==='function')startSessionPoll(user.id);
+}
+function updatePlanUI(){
+  const pro=PLAN==='ai_pro';
+  const chip=document.getElementById('pchip');
+  chip.textContent='AI Pro';
+  chip.className='pchip pro';
+  const dp=document.getElementById('dd-pl');
+  if(dp){dp.textContent='AI Consultant Pro';dp.style.color='var(--green)';}
+  const uit=document.getElementById('dd-up-it');
+  if(uit)uit.style.display='none'; // single plan, no upgrade needed
+  renderSlots();renderPkgBtns();
+}
+
+/* ══════════════════════════════════════════
+   PLAN GATING — SLOTS
+   ══════════════════════════════════════════ */
+function renderSlots(){
+  const FEAT_LABELS={
+    dashboard:['Personalized health analysis','Top priority recommendations','Risk identification'],
+    forecast:['12-month strategy advice','Scenario planning','Growth lever analysis'],
+    insights:['30-day action plan','Churn reduction tactics','Cost-cutting guidance'],
+    consultant:['Executive summary','Consultation prep checklist','Key questions to ask'],
+  };
+  Object.entries(SLOTS).forEach(([ctx,cfg])=>{
+    const el=document.getElementById(cfg.slot);
+    if(!el)return;
+    if(PLAN==='ai_pro'){
+      if(el.querySelector('.ap'))return;
+      const pillsHtml=cfg.pills.map(([lk,qk])=>`<button class="pill" onclick="askQ('${ctx}',Q('${qk}'))">${S(lk)}</button>`).join('');
+      el.innerHTML=`<div class="ap"><div class="aph2"><div class="aphl"><i class="ti ti-sparkles" style="font-size:15px;color:var(--coral)" aria-hidden="true"></i>${S(cfg.titleK)}</div><button class="cbtn" id="${cfg.btn}" onclick="askAI('${ctx}')"><i class="ti ${cfg.icon}" style="font-size:12px" aria-hidden="true"></i>${S(cfg.btnK)}</button></div><div class="apb" id="adv-${ctx}"><div class="pills">${pillsHtml}</div><div class="apph">${S(cfg.phK)}</div></div></div>`;
+    } else {
+      const ff=(FEAT_LABELS[ctx]||[]).map(f=>`<div class="lff"><i class="ti ti-sparkles" aria-hidden="true"></i>${f}</div>`).join('');
+      el.innerHTML=`<div class="lkp"><div class="lki"><i class="ti ti-lock" aria-hidden="true"></i></div><div class="lkt">${S(cfg.ltK)}</div><div class="lkf">${ff}</div><div class="lkd">${S(cfg.ldK)}</div><button class="upbtn" onclick="switchTab('pricing')"><i class="ti ti-crown" style="font-size:14px" aria-hidden="true"></i>${S('lk-upgrade')}</button></div>`;
+    }
+  });
+}
+function renderPkgBtns(){
+  const pro=PLAN==='ai_pro';
+  const es=document.getElementById('slot-ess-btn');
+  if(es)es.innerHTML=!pro?`<div class="curpl" style="background:#e8f5e9;color:#1b5e20"><i class="ti ti-check" aria-hidden="true"></i> Your current plan</div>`:`<button class="pkgbtn n" onclick="alert('Contact info@global1080.com to change your plan.')">Switch to Essential</button>`;
+  const ap=document.getElementById('slot-pro-btn');
+  if(ap)ap.innerHTML=pro?`<div class="curpl" style="background:#e8f5e9;color:#1b5e20"><i class="ti ti-check" aria-hidden="true"></i> Your current plan</div>`:`<button class="pkgbtn c" onclick="upgradePro()"><i class="ti ti-sparkles" style="font-size:12px" aria-hidden="true"></i> Upgrade to AI Pro</button>`;
+}
+async function upgradePro(){
+  if(!USER){alert('Please sign in first.');return;}
+  /* In production: redirect to Stripe Checkout payment link here
+     window.location.href = 'https://buy.stripe.com/YOUR_LINK'; */
+  const ok=confirm('Upgrade to AI Pro ($14.99/mo)?\n\nIn the live app this redirects to Stripe.\nClick OK to simulate the upgrade now.');
+  if(!ok)return;
+  await sb.from('profiles').update({plan:'ai_pro'}).eq('id',USER.id);
+  PLAN='ai_pro';updatePlanUI();switchTab('dashboard');
+  alert('Welcome to AI Pro! All AI features are now unlocked.');
+}
+function triggerAI(ctx){askAI(ctx);}
+
+/* ══════════════════════════════════════════
+   CALCULATIONS
+   ══════════════════════════════════════════ */
+function gi(){return{rev:parseFloat(document.getElementById('inp-rev').value)||24500,exp:parseFloat(document.getElementById('inp-exp').value)||17200,cash:parseFloat(document.getElementById('inp-cash').value)||45000,debt:parseFloat(document.getElementById('inp-debt').value)||12000,cust:parseFloat(document.getElementById('inp-cust').value)||120,churn:parseFloat(document.getElementById('inp-churn').value)||6,growth:parseFloat(document.getElementById('inp-growth').value)||4.2,expgrow:parseFloat(document.getElementById('inp-expgrow').value)||2.1};}
+function calcSc(d){const m=(d.rev-d.exp)/d.rev,rw=d.exp>0?d.cash/d.exp:12,cr=d.cust>0?d.churn/d.cust:0,dr=d.rev>0?d.debt/d.rev:0;return{cashflow:Math.min(100,Math.max(0,Math.round(rw/12*100))),profit:Math.min(100,Math.max(0,Math.round(m*200))),growth:Math.min(100,Math.max(0,Math.round(d.growth/10*100))),customer:Math.min(100,Math.max(0,Math.round((1-cr*10)*100))),debt:Math.min(100,Math.max(0,Math.round((1-Math.min(dr,1))*100)))};}
+function ovSc(s){const w={cashflow:.25,profit:.25,growth:.2,customer:.2,debt:.1};return Math.round(Object.keys(w).reduce((a,k)=>a+s[k]*w[k],0));}
+function scCol(s){
+  if(s>=80)return{bar:'#1D9E75',bg:'rgba(29,158,117,.2)',txt:'#a8ffd6',lk:'lbl-excellent',dk:'sc-excellent'};
+  if(s>=60)return{bar:'#F05454',bg:'rgba(240,84,84,.2)',txt:'#ffaaaa',lk:'lbl-good',dk:'sc-good'};
+  if(s>=40)return{bar:'#EF9F27',bg:'rgba(239,159,39,.2)',txt:'#ffd694',lk:'lbl-fair',dk:'sc-fair'};
+  return{bar:'#c03a3a',bg:'rgba(192,58,58,.25)',txt:'#ffaaaa',lk:'lbl-atrisk',dk:'sc-atrisk'};
+}
+function pCol(s){if(s>=80)return'#1D9E75';if(s>=60)return'#F05454';if(s>=40)return'#EF9F27';return'#c03a3a';}
+
+function recalc(){
+  const d=gi(),p=d.rev-d.exp,m=d.rev>0?p/d.rev*100:0,rw=d.exp>0?d.cash/d.exp:0;
+  const sc=calcSc(d),ov=ovSc(sc),col=scCol(ov),ru=S('ru');
+  CM={d,profit:p,margin:m.toFixed(1),runway:rw.toFixed(1),scores:sc,overall:ov,label:S(col.lk)};
+
+  sT('m-rev',fmt(d.rev));sT('m-exp',fmt(d.exp));sT('m-profit',fmt(p));
+  sT('m-margin',m.toFixed(1)+'%');sT('m-runway',rw.toFixed(1)+' '+ru);
+
+  const circ=2*Math.PI*30,arc=document.getElementById('sc-arc');
+  arc.setAttribute('stroke-dasharray',circ.toFixed(1));
+  arc.setAttribute('stroke-dashoffset',(circ*(1-ov/100)).toFixed(1));
+  arc.setAttribute('stroke',col.bar);
+  sT('sc-num',ov);sT('sc-disp',ov);
+  const sb2=document.getElementById('sc-badge');sb2.textContent=S(col.lk);sb2.style.background=col.bg;sb2.style.color=col.txt;
+  sT('sc-desc',S(col.dk));
+
+  document.getElementById('pgrid').innerHTML=PD.map(pp=>{const ps=sc[pp.k],c=pCol(ps);return`<div class="pi"><div class="pin">${S(pp.lk)}</div><div class="pis" style="color:${c}">${ps}</div><div class="bb"><div class="bf" style="width:${ps}%;background:${c}"></div></div></div>`;}).join('');
+
+  /* iOS */
+  const ic=2*Math.PI*25,ia=document.getElementById('ios-arc');
+  ia.setAttribute('stroke-dasharray',ic.toFixed(1));ia.setAttribute('stroke-dashoffset',(ic*(1-ov/100)).toFixed(1));
+  sT('ios-sc',ov);sT('ios-sc-big',ov);
+  const ib=document.getElementById('ios-bdg');ib.textContent=S(col.lk);ib.style.background=col.bg;ib.style.color=col.txt;
+  sT('ios-rev',fmt(d.rev));sT('ios-profit',fmt(p));sT('ios-margin',m.toFixed(1)+'%');sT('ios-runway',rw.toFixed(1)+' '+ru);
+  document.getElementById('ios-pillars').innerHTML=PD.map(pp=>{const ps=sc[pp.k],c=pCol(ps);return`<div class="i-pr"><span class="i-pn">${S(pp.lk)}</span><div class="i-prt"><span class="i-pts" style="color:${c}">${ps}</span><div class="i-mb"><div class="i-mf" style="width:${ps}%;background:${c}"></div></div></div></div>`;}).join('');
+
+  /* Android */
+  const ac=2*Math.PI*22,aa=document.getElementById('and-arc');
+  aa.setAttribute('stroke-dasharray',ac.toFixed(1));aa.setAttribute('stroke-dashoffset',(ac*(1-ov/100)).toFixed(1));
+  sT('and-sc',ov);sT('and-sc-big',ov);
+  const ab=document.getElementById('and-bdg');ab.textContent=S(col.lk);ab.style.color=col.bar;
+  sT('and-rev',fmt(d.rev));sT('and-profit',fmt(p));sT('and-margin',m.toFixed(1)+'%');sT('and-runway',rw.toFixed(1)+' '+ru);
+  document.getElementById('and-pillars').innerHTML=PD.map(pp=>{const ps=sc[pp.k],c=pCol(ps);return`<div class="a-pi"><div class="a-pt"><span class="a-pn">${S(pp.lk)}</span><span class="a-psc" style="color:${c}">${ps}</span></div><div class="a-bb"><div class="a-bf" style="width:${ps}%;background:${c}"></div></div></div>`;}).join('');
+
+  buildFC(d,ov);buildIns(d,sc,p,m,rw);
+}
+
+function buildFC(d,ov){
+  const mo=['Now','1','2','3','4','5','6','7','8','9','10','11','12'];
+  const rA=[],eA=[],pA=[],sA=[];
+  let r=d.rev,e=d.exp,s=ov;
+  for(let i=0;i<=12;i++){rA.push(Math.round(r));eA.push(Math.round(e));pA.push(Math.round(r-e));sA.push(Math.min(100,Math.max(0,Math.round(s))));const pm=(r-e)/r;s+=pm>.2?.8:pm>.1?.3:-.5;r*=(1+d.growth/100);e*=(1+d.expgrow/100);}
+  sT('f-rev12',fmt(rA[12]));sT('f-profit12',fmt(pA[12]));
+  const s12=sA[12],c12=scCol(s12);sT('f-sc12',s12+' ('+S(c12.lk)+')');document.getElementById('f-sc12').style.color=c12.bar;
+  const sym=STR[LANG].sym;
+  if(FCH)FCH.destroy();
+  FCH=new Chart(document.getElementById('fc-chart').getContext('2d'),{type:'line',data:{labels:mo,datasets:[{data:rA,borderColor:'#0D1033',backgroundColor:'rgba(13,16,51,.07)',fill:true,tension:.35,pointRadius:2},{data:eA,borderColor:'#F05454',fill:false,tension:.35,pointRadius:2,borderDash:[4,3]},{data:pA,borderColor:'#1D9E75',backgroundColor:'rgba(29,158,117,.07)',fill:true,tension:.35,pointRadius:2}]},options:{responsive:true,maintainAspectRatio:false,plugins:{legend:{display:false}},scales:{y:{ticks:{callback:v=>Math.abs(v)>=1000?sym+(v/1000).toFixed(0)+'k':sym+v,font:{size:10}},grid:{color:'rgba(128,128,128,.06)'}},x:{ticks:{font:{size:10},autoSkip:false,maxRotation:0},grid:{display:false}}}}});
+  if(SCH)SCH.destroy();
+  SCH=new Chart(document.getElementById('sc-chart').getContext('2d'),{type:'line',data:{labels:mo,datasets:[{data:sA,borderColor:'#F05454',backgroundColor:'rgba(240,84,84,.08)',fill:true,tension:.4,pointRadius:2}]},options:{responsive:true,maintainAspectRatio:false,plugins:{legend:{display:false}},scales:{y:{min:0,max:100,ticks:{font:{size:10}},grid:{color:'rgba(128,128,128,.06)'}},x:{ticks:{font:{size:10},autoSkip:false,maxRotation:0},grid:{display:false}}}}});
+}
+
+function buildIns(d,sc,p,m,rw){
+  const ins=[],cr=d.cust>0?(d.churn/d.cust*100):0;
+  const L=LANG,t=(en,es,pt)=>L==='es'?es:L==='pt'?pt:en;
+  if(rw<3)ins.push({bg:'#fde8e8',txt:t(`Critical: Cash runway is ${rw.toFixed(1)} months. Immediate action needed.`,`Critico: Reserva de caja de ${rw.toFixed(1)} meses. Accion inmediata requerida.`,`Critico: Reserva de caixa de ${rw.toFixed(1)} meses. Acao imediata necessaria.`),icon:'ti-alert-triangle'});
+  else if(rw<6)ins.push({bg:'#fff3e0',txt:t(`Cash runway ${rw.toFixed(1)} months — below the 6-month buffer.`,`Reserva de caja ${rw.toFixed(1)} meses — por debajo del limite.`,`Reserva de caixa ${rw.toFixed(1)} meses — abaixo do limite.`),icon:'ti-alert-circle'});
+  else ins.push({bg:'#e8f5e9',txt:t(`Cash runway ${rw.toFixed(1)} months is healthy.`,`Reserva de caja de ${rw.toFixed(1)} meses es saludable.`,`Reserva de caixa de ${rw.toFixed(1)} meses esta saudavel.`),icon:'ti-check'});
+  if(m<10)ins.push({bg:'#fde8e8',txt:t(`Profit margin ${m.toFixed(1)}% is thin. Review pricing and expenses.`,`Margen del ${m.toFixed(1)}% es bajo. Revisa precios y gastos.`,`Margem de ${m.toFixed(1)}% e baixa. Revise precos e despesas.`),icon:'ti-trending-down'});
+  else if(m>25)ins.push({bg:'#e8f5e9',txt:t(`Profit margin ${m.toFixed(1)}% is strong.`,`Margen del ${m.toFixed(1)}% es solido.`,`Margem de ${m.toFixed(1)}% e solida.`),icon:'ti-trending-up'});
+  if(cr>10)ins.push({bg:'#fde8e8',txt:t(`Customer churn ${cr.toFixed(1)}% is high. Focus on retention.`,`Abandono del ${cr.toFixed(1)}% es alto. Enfocate en retencion.`,`Churn de ${cr.toFixed(1)}% e alto. Foque na retencao.`),icon:'ti-users'});
+  else if(cr>5)ins.push({bg:'#fff3e0',txt:t(`Churn at ${cr.toFixed(1)}% — monitor closely.`,`Abandono en ${cr.toFixed(1)}% — monitorea de cerca.`,`Churn em ${cr.toFixed(1)}% — monitore de perto.`),icon:'ti-users'});
+  if(d.growth>d.expgrow+2)ins.push({bg:'#e8f0fe',txt:t('Revenue growing faster than expenses — healthy scale signal.','Ingresos crecen mas rapido que gastos — senal positiva.','Receita crescendo mais rapido que despesas — sinal positivo.'),icon:'ti-rocket'});
+  else if(d.expgrow>d.growth)ins.push({bg:'#fff3e0',txt:t('Expenses growing faster than revenue. Review cost structure.','Gastos crecen mas rapido que ingresos. Revisa costos.','Despesas crescendo mais rapido que receita. Revise os custos.'),icon:'ti-alert-circle'});
+  document.getElementById('ins-list').innerHTML=ins.map(i=>`<div class="ins" style="background:${i.bg}"><i class="ti ${i.icon}" style="font-size:15px;flex-shrink:0;margin-top:1px;color:#555" aria-hidden="true"></i><span>${i.txt}</span></div>`).join('');
+}
+
+/* ══════════════════════════════════════════
+   AI API
+   ══════════════════════════════════════════ */
+function buildSys(ctx){
+  if(!CM.d)return'You are a business advisor for Global 1080 Business Solutions.';
+  const base=`You are a sharp, practical small business financial advisor at Global 1080 Business Solutions ("Your Experienced Guide to Success!"). You are the AI Consultant. Give concrete, specific, actionable advice. Be direct. Format with short paragraphs or brief bullets. Under 250 words.\n\nBusiness snapshot:\n- Revenue: ${fmt(CM.d.rev)}/mo (${CM.d.growth}% growth)\n- Expenses: ${fmt(CM.d.exp)}/mo (${CM.d.expgrow}% growth)\n- Net profit: ${fmt(CM.profit)} (${CM.margin}% margin)\n- Cash: ${fmt(CM.d.cash)} (${CM.runway} months runway)\n- Debt: ${fmt(CM.d.debt)}\n- Customers: ${CM.d.cust} active, ${CM.d.churn} lost (${CM.d.cust>0?((CM.d.churn/CM.d.cust)*100).toFixed(1):0}% churn)\n- Health score: ${CM.overall}/100 (${CM.label})\n- Pillars — Cash: ${CM.scores.cashflow}, Profit: ${CM.scores.profit}, Growth: ${CM.scores.growth}, Customers: ${CM.scores.customer}, Debt: ${CM.scores.debt}`;
+  const f={dashboard:Q('sys_d'),forecast:Q('sys_f'),insights:Q('sys_i'),consultant:Q('sys_c')};
+  return base+'\n\n'+(f[ctx]||f.dashboard);
+}
+function renderMd(t){return t.replace(/\*\*(.*?)\*\*/g,'<strong>$1</strong>').replace(/^### (.+)$/gm,'<div style="font-weight:600;margin-top:.6rem;margin-bottom:2px">$1</div>').replace(/^- (.+)$/gm,'<li>$1</li>').replace(/(<li>.*<\/li>\n?)+/g,m=>'<ul>'+m+'</ul>').replace(/\n\n/g,'</p><p>').replace(/^(?!<[uh]|<div|<p)(.+)/gm,'<p>$1</p>').replace(/<p><\/p>/g,'');}
+
+async function askAIWith(ctx,prompt){
+  if(PLAN!=='ai_pro'){switchTab('pricing');return;}
+  const cfg=SLOTS[ctx];
+  const btn=document.getElementById(cfg.btn);
+  const adv=document.getElementById('adv-'+ctx);
+  if(!btn||!adv)return;
+  btn.disabled=true;btn.innerHTML=`<div class="spin"></div> ${S('thinking')}…`;
+  const ph=adv.querySelector('.pills')?.outerHTML||'';
+  adv.innerHTML=ph+`<span class="apph">${S('thinking')}<span class="cbl"></span></span>`;
+  try{
+    const res=await fetch('https://api.anthropic.com/v1/messages',{method:'POST',headers:{'Content-Type':'application/json'},body:JSON.stringify({model:'claude-sonnet-4-20250514',max_tokens:1000,system:buildSys(ctx),messages:[{role:'user',content:prompt}],stream:true})});
+    adv.innerHTML=ph+'<span class="cbl"></span>';
+    let txt='';const rd=res.body.getReader(),dc=new TextDecoder();
+    while(true){const{done,v}=await rd.read();if(done)break;for(const line of dc.decode(v).split('\n')){if(!line.startsWith('data: '))continue;const d=line.slice(6);if(d==='[DONE]')continue;try{const p=JSON.parse(d);if(p.type==='content_block_delta'&&p.delta?.text){txt+=p.delta.text;adv.innerHTML=ph+renderMd(txt)+'<span class="cbl"></span>';}}catch{}}}
+    adv.innerHTML=ph+renderMd(txt);
+  }catch(e){adv.innerHTML=ph+`<span style="color:var(--coral)">Connection error. Please try again.</span>`;}
+  btn.disabled=false;
+  btn.innerHTML=`<i class="ti ${cfg.icon}" style="font-size:12px" aria-hidden="true"></i>${S(cfg.btnK)}`;
+}
+const Q_DEFAULTS={dashboard:'q_priorities',forecast:'q_90days',insights:'q_30day',consultant:'q_exec'};
+function askAI(ctx){askAIWith(ctx,Q(Q_DEFAULTS[ctx]));}
+function askQ(ctx,q){askAIWith(ctx,q);}
+
+/* ── UI HELPERS ── */
+function setPf(p){['web','ios','android'].forEach(pt=>{document.getElementById('vw-'+pt).style.display=pt===p?'':'none';const c=document.getElementById('pc-'+pt);c.classList.toggle('on',pt===p);c.setAttribute('aria-pressed',pt===p?'true':'false');});}
+function switchTab(n){['dashboard','inputs','forecast','insights','consultant','pricing'].forEach((t,i)=>{const el=document.getElementById('tab-'+t);if(el)el.style.display=t===n?'':'none';const tab=document.querySelectorAll('.tab')[i];if(tab)tab.classList.toggle('on',t===n);});}
+function toggleDD(){document.getElementById('udd').classList.toggle('open');}
+function closeDD(){document.getElementById('udd').classList.remove('open');}
+document.addEventListener('click',e=>{const dd=document.getElementById('udd'),av=document.getElementById('uav');if(dd&&av&&!dd.contains(e.target)&&!av.contains(e.target))closeDD();});
+function openEmail(){const body=S('email_body')+(CM.overall?`\n\n${S('lbl-sc-ttl')}: ${CM.overall}/100 (${CM.label})\n${S('lbl-rev')}: ${fmt(CM.d.rev)}\n${S('lbl-profit')}: ${fmt(CM.profit)}\n${S('lbl-runway')}: ${CM.runway} ${S('ru')}`:``);window.location.href=`mailto:info@global1080.com?subject=${encodeURIComponent(S('email_subject'))}&body=${encodeURIComponent(body)}`;}
+
+/* ══════════════════════════════════════════
+   SINGLE-SESSION ENFORCEMENT
+   ─────────────────────────────────────────
+   Strategy:
+   • On login, we write a unique session_token
+     (UUID + timestamp) into the 'active_sessions'
+     Supabase table for this user.
+   • Every 30 seconds we check the table: if our
+     stored token no longer matches the current one
+     the user was signed in elsewhere and we force
+     sign-out here with a clear message.
+   • On sign-out we DELETE the session row so the
+     next login slot is immediately available.
+   • Platform (web/ios/android) is stored so the
+     user sees which device has the active session.
+   ══════════════════════════════════════════ */
+
+let SESSION_TOKEN = null;
+let SESSION_POLL  = null;
+
+/* Generate a random token */
+function genToken(){
+  return ([1e7]+-1e3+-4e3+-8e3+-1e11)
+    .replace(/[018]/g,c=>(c^crypto.getRandomValues(new Uint8Array(1))[0]&15>>c/4).toString(16));
+}
+
+/* getPlatform moved to global scope above */
+
+/* Register this session in Supabase */
+async function registerSession(userId){
+  SESSION_TOKEN = genToken();
+  const platform = getPlatform();
+  const ts = new Date().toISOString();
+  /* Upsert — replaces any existing row for this user */
+  await sb.from('active_sessions').upsert({
+    user_id:    userId,
+    token:      SESSION_TOKEN,
+    platform:   platform,
+    signed_in_at: ts
+  }, {onConflict:'user_id'});
+}
+
+/* Poll every 30 s — if our token was replaced, sign out */
+function startSessionPoll(userId){
+  stopSessionPoll();
+  SESSION_POLL = setInterval(async()=>{
+    const{data,error}=await sb.from('active_sessions')
+      .select('token,platform')
+      .eq('user_id',userId)
+      .single();
+    if(error||!data||data.token!==SESSION_TOKEN){
+      stopSessionPoll();
+      const where = data?.platform||'another device';
+      await sb.auth.signOut();
+      USER=null;PLAN='ai_pro';
+      document.getElementById('app').style.display='none';
+      document.getElementById('auth').style.display='flex';
+      showATab('login');closeDD();
+      /* Show a clear message in the login form */
+      const msg=document.getElementById('login-msg');
+      if(msg)showMsg(msg,
+        `Your account was signed in on ${where}. Only one session is allowed at a time.`,'err');
+    }
+  },30000);
+}
+
+function stopSessionPoll(){
+  if(SESSION_POLL){clearInterval(SESSION_POLL);SESSION_POLL=null;}
+}
+
+/* Remove session row on sign-out */
+async function clearSession(userId){
+  stopSessionPoll();
+  if(userId){
+    await sb.from('active_sessions')
+      .delete()
+      .eq('user_id',userId);
+  }
+  SESSION_TOKEN=null;
+}
+
+/* doSignOut and loadUser are redefined globally below to include
+   session management — the originals in the earlier function list
+   are intentionally replaced by these definitions which JS will use
+   due to function declaration order (last definition wins for async
+   function expressions, but here we use direct replacement). */
+
+/* ══════════════════════════════════════════
+   BOOT
+   ══════════════════════════════════════════ */
+(async()=>{
+  const{data:{session}}=await sb.auth.getSession();
+  if(session?.user)await loadUser(session.user);
+  sb.auth.onAuthStateChange(async(ev,ses)=>{
+    if(ev==='SIGNED_IN'&&ses?.user){
+      /* loadUser already called by sign-in flow; skip duplicate */
+      if(!USER)await loadUser(ses.user);
+    }
+    if(ev==='SIGNED_OUT'){
+      stopSessionPoll();
+      USER=null;PLAN='ai_pro';
+    }
+  });
+})();
+
+/*
+ ══════════════════════════════════════════════
+ SUPABASE SETUP — run once in your SQL editor
+ at https://app.supabase.com → SQL Editor
+
+ -- 1. User profiles table (unchanged)
+ create table if not exists profiles (
+   id uuid primary key references auth.users(id) on delete cascade,
+   email text,
+   full_name text,
+   plan text default 'ai_pro' check (plan in ('ai_pro')),
+   created_at timestamptz default now()
+ );
+ alter table profiles enable row level security;
+ create policy "own_read"   on profiles for select using (auth.uid()=id);
+ create policy "own_update" on profiles for update using (auth.uid()=id);
+ create policy "own_insert" on profiles for insert with check (auth.uid()=id);
+
+ -- 2. Single-session enforcement table (NEW)
+ create table if not exists active_sessions (
+   user_id      uuid primary key references auth.users(id) on delete cascade,
+   token        text not null,
+   platform     text default 'Web',
+   signed_in_at timestamptz default now()
+ );
+ alter table active_sessions enable row level security;
+ -- Users can only read/write/delete their own session row
+ create policy "session_select" on active_sessions for select using (auth.uid()=user_id);
+ create policy "session_upsert" on active_sessions for insert with check (auth.uid()=user_id);
+ create policy "session_update" on active_sessions for update using (auth.uid()=user_id);
+ create policy "session_delete" on active_sessions for delete using (auth.uid()=user_id);
+
+ ── HOW SINGLE-SESSION WORKS ──────────────────
+ • When a user signs in (any platform), a unique
+   token is written to active_sessions for that user.
+ • Any existing row is replaced (upsert on user_id).
+   This immediately invalidates any other active session.
+ • Every 30 seconds the app polls the table.
+   If the stored token no longer matches, the app
+   signs out automatically and shows a message:
+   "Your account was signed in on [platform]."
+ • On sign-out the row is deleted, freeing the slot.
+
+ ── FREE MOBILE ACCESS ────────────────────────
+ • iOS and Android apps use the SAME Supabase project.
+ • Users sign up once on any platform.
+ • The subscription check (PLAN='ai_pro') is set on
+   all accounts by default — mobile is free by policy.
+ • To gate mobile to paid-only in future, add a
+   'mobile_access' boolean column to profiles.
+ ══════════════════════════════════════════════
+*/
+</script>
+</body>
+</html>
