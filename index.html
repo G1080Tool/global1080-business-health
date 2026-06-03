@@ -287,9 +287,43 @@ html,body{min-height:100vh;background:var(--bg);font-family:var(--f);color:var(-
 @media(max-width:480px){.pkgrid{grid-template-columns:1fr;}.sh-n{font-size:42px;}.shell{padding:0 12px 80px;}}
 @keyframes fi{from{opacity:0;transform:translateY(8px)}to{opacity:1;transform:translateY(0)}}
 .tc{animation:fi .25s ease;}
+
+/* ── Supabase not-configured warning ── */
+#sb-warning{
+  display:none;
+  position:fixed;top:0;left:0;right:0;z-index:9999;
+  background:#c03a3a;color:#fff;
+  padding:10px 16px;font-size:13px;font-weight:600;
+  text-align:center;line-height:1.5;
+  box-shadow:0 2px 8px rgba(0,0,0,.3);
+}
+#sb-warning a{color:#ffd0d0;text-decoration:underline;cursor:pointer;}
+#sb-warning .sb-warn-close{
+  float:right;cursor:pointer;font-size:18px;line-height:1;
+  margin-left:12px;opacity:.8;
+}
+/* Demo mode badge */
+#demo-badge{
+  display:none;
+  position:fixed;bottom:16px;right:16px;z-index:9998;
+  background:var(--navy);color:#fff;
+  padding:7px 14px;border-radius:20px;font-size:11px;font-weight:600;
+  border:1.5px solid rgba(255,255,255,.2);
+  box-shadow:0 4px 14px rgba(0,0,0,.3);
+  cursor:default;
+}
 </style>
 </head>
 <body>
+<div id="sb-warning" role="alert">
+  ⚠️ Supabase is not configured — sign-in is unavailable.
+  <a onclick="enterDemoMode()" style="margin-left:8px;font-weight:700;text-decoration:underline;cursor:pointer;">
+    Click here to explore the app in Demo Mode →
+  </a>
+  <span class="sb-warn-close" onclick="this.parentElement.style.display='none'" aria-label="Close">✕</span>
+</div>
+<div id="demo-badge">🔒 Demo Mode — read only</div>
+
 
 <!-- ═══ AUTH SCREEN ═══ -->
 <div id="auth">
@@ -722,6 +756,47 @@ const SB_URL  = 'YOUR_SUPABASE_URL';
 const SB_ANON = 'YOUR_SUPABASE_ANON_KEY';
 const sb = window.supabase.createClient(SB_URL, SB_ANON);
 
+/* ── Supabase configuration check ── */
+const SB_CONFIGURED = SB_URL !== 'YOUR_SUPABASE_URL' && SB_URL.startsWith('https://');
+
+/* ── Demo mode: bypass auth entirely ── */
+function enterDemoMode(){
+  document.getElementById('sb-warning').style.display='none';
+  document.getElementById('demo-badge').style.display='block';
+  // Populate demo user
+  USER = {id:'demo-user',email:'demo@global1080.com'};
+  PLAN = 'ai_pro';
+  sT('uav','MR');
+  sT('dd-nm','Maria Rodriguez (Demo)');
+  sT('dd-em','demo@global1080.com');
+  updatePlanUI();
+  // Hide auth, show app
+  document.getElementById('auth').style.display='none';
+  document.getElementById('app').style.display='block';
+  // Pre-fill demo numbers so dashboard renders
+  const demoVals = {
+    'n-rev':'24500','n-exp':'17200','n-cash':'45000',
+    'n-debt':'12000','n-cust':'120','n-lost':'6',
+    'n-rgr':'4.2','n-egr':'2.1'
+  };
+  Object.entries(demoVals).forEach(([id,v])=>{
+    const el=document.getElementById(id);
+    if(el)el.value=v;
+  });
+  recalc();applyStrings();
+}
+
+/* ── Show warning if not configured ── */
+if(!SB_CONFIGURED){
+  document.addEventListener('DOMContentLoaded',()=>{
+    const dl=document.getElementById('demo-link');
+    if(dl&&!SB_CONFIGURED)dl.style.display='inline';
+    const w=document.getElementById('sb-warning');
+    if(w)w.style.display='block';
+  });
+}
+
+
 /* ── STATE ── */
 let USER=null, PLAN='ai_pro', LANG='en', CM={};
 let FCH=null, SCH=null, SEL_PLAN='ai_pro';
@@ -1055,8 +1130,19 @@ async function doLogin(){
   const btn=document.getElementById('btn-login');
   const msg=document.getElementById('login-msg');
   if(!em||!pw){showMsg(msg,'Please enter your email and password.','err');return;}
+  /* Check if Supabase is configured */
+  if(!SB_CONFIGURED){
+    showMsg(msg,'Backend not yet configured. Use Demo Mode (link above) to explore the app.','err');
+    const w=document.getElementById('sb-warning');if(w)w.style.display='block';
+    return;
+  }
   btn.disabled=true;btn.innerHTML='<div class="spin"></div>';
-  const{data,error}=await sb.auth.signInWithPassword({email:em,password:pw});
+  let data,error;
+  try{
+    ({data,error}=await sb.auth.signInWithPassword({email:em,password:pw}));
+  }catch(e){
+    error={message:'Connection failed. Check your internet connection and try again.'};
+  }
   if(error){showMsg(msg,error.message,'err');btn.disabled=false;btn.innerHTML=`<span id="login-btn-t">${S('login-btn-t')}</span>`;return;}
   await loadUser(data.user);
 }
@@ -1068,8 +1154,19 @@ async function doSignup(){
   const msg=document.getElementById('signup-msg');
   if(!nm||!em||!pw){showMsg(msg,'Please fill in all fields.','err');return;}
   if(pw.length<8){showMsg(msg,'Password must be at least 8 characters.','err');return;}
+  /* Check if Supabase is configured before attempting */
+  if(!SB_CONFIGURED){
+    showMsg(msg,'Backend not yet configured. Use Demo Mode to explore the app.','err');
+    const w=document.getElementById('sb-warning');if(w)w.style.display='block';
+    return;
+  }
   btn.disabled=true;btn.innerHTML='<div class="spin"></div>';
-  const{data,error}=await sb.auth.signUp({email:em,password:pw,options:{data:{full_name:nm,plan:'ai_pro'}}});
+  let data,error;
+  try{
+    ({data,error}=await sb.auth.signUp({email:em,password:pw,options:{data:{full_name:nm,plan:'ai_pro'}}}));
+  }catch(e){
+    error={message:'Connection failed. Check your internet connection and try again.'};
+  }
   if(error){showMsg(msg,error.message,'err');btn.disabled=false;btn.innerHTML=`<span>${S('signup-btn-t')}</span>`;return;}
   if(data.user){
     await sb.from('profiles').upsert({id:data.user.id,email:em,full_name:nm,plan:'ai_pro'});
